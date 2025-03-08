@@ -9,6 +9,7 @@ using Perpetuum.Zones.NpcSystem.Presences.InterzonePresences;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Drawing;
 
 namespace Perpetuum.Zones.NpcSystem.Flocks
 {
@@ -155,7 +156,7 @@ namespace Perpetuum.Zones.NpcSystem.Flocks
         {
             var spawnRangeMin = Configuration.SpawnRange.Min;
             var spawnRangeMax = Configuration.SpawnRange.Max.Min(HomeRange);
-            var spawnPosition = spawnOrigin.GetRandomPositionInRange2D(spawnRangeMin, spawnRangeMax).Clamp(Presence.ZoneSize);
+            var spawnPosition = spawnOrigin.GetRandomPositionInRange2D(spawnRangeMin, spawnRangeMax).Clamp(Presence.Zone?.Size ?? Size.Empty);
 
             return spawnPosition;
         }

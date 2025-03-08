@@ -1,32 +1,25 @@
-using Serilog;
-using System;
-using Serilogger = Serilog.ILogger;
+using Microsoft.Extensions.Logging;
 
 namespace Perpetuum.Log.Loggers
 {
-    public class ColoredConsoleLogger : ConsoleLogger<LogEvent>
+    public class ColoredConsoleLogger(ILogEventFormatter<LogEvent, string> formatter) : ConsoleLogger<LogEvent>(formatter)
     {
-        private static readonly Lazy<Serilogger> _logger = new(() => new LoggerConfiguration()
-            .ReadFrom.Configuration(ConfigurationManager.Load())
-            .CreateLogger());
-
-        public ColoredConsoleLogger(ILogEventFormatter<LogEvent, string> formatter) : base(formatter) { }
-
         public override void Log(LogEvent logEvent)
         {
+            var logger = GlobalServiceManager.LoggerFactory.CreateLogger(nameof(ColoredConsoleLogger));
             switch (logEvent.LogType)
             {
                 case LogType.Warning:
-                    _logger.Value.Warning(logEvent.Message);
+                    logger.LogWarning("{Message}", logEvent.Message);
                     break;
                 case LogType.Error:
-                    _logger.Value.Error(logEvent.ThrownException, logEvent.Message);
+                    logger.LogError(logEvent.ThrownException, "{Message}", logEvent.Message);
                     break;
                 case LogType.None:
-                    _logger.Value.Debug(logEvent.Message);
+                    logger.LogDebug("{Message}", logEvent.Message);
                     break;
                 default:
-                    _logger.Value.Information(logEvent.Message);
+                    logger.LogInformation("{Message}", logEvent.Message);
                     break;
             }
         }

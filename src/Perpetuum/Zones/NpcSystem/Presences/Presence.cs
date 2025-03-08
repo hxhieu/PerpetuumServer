@@ -128,7 +128,7 @@ namespace Perpetuum.Zones.NpcSystem.Presences
 
         public virtual void Log(string message)
         {
-            Logger.Info($"[Presence] ({ToString()}) - {message}");
+            Logger.DebugInfo($"[Presence] ({ToString()}) - {message}");
         }
 
         protected void ClearFlocks()

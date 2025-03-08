@@ -34,6 +34,7 @@ using Perpetuum.Zones.Terrains.Terraforming;
 using Perpetuum.Zones.Training.Reward;
 using Perpetuum.Zones.ZoneEntityRepositories;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -190,21 +191,41 @@ namespace Perpetuum.Bootstrapper.Modules
 #if DEBUG
                 zones = zones.OrderByDescending(x => x.Id).Take(1);
 #endif
-                foreach (ZoneConfiguration c in zones)
+                var zoneList = new List<IZone>();
+                
+                //// Load from cache
+                //try
+                //{
+                //    var cached = File.ReadAllBytes("zones.bin");
+                //    zoneList = MemoryPackSerializer.Deserialize<List<IZone>>(cached);
+                //}
+                //catch (Exception ex)
+                //{
+                //    /* invalid cache file, just ignore */
+                //    Logger.Error($"Invalid zones cache. {ex.Message}");
+                //}
+
+                // Cache is stalled
+                if (zoneList.Count != zones.Count())
                 {
-                    Func<ZoneConfiguration, IZone> zoneFactory = e.Context.Resolve<Func<ZoneConfiguration, IZone>>();
-                    IZone zone = zoneFactory(c);
+                    foreach (ZoneConfiguration c in zones)
+                    {
+                        Func<ZoneConfiguration, IZone> zoneFactory = e.Context.Resolve<Func<ZoneConfiguration, IZone>>();
+                        IZone zone = zoneFactory(c);
 
-                    _ = e.Context.Resolve<Func<IZone, EnvironmentalEffectHandler>>().Invoke(zone);
+                        _ = e.Context.Resolve<Func<IZone, EnvironmentalEffectHandler>>().Invoke(zone);
 
-                    Logger.Info("------------------");
-                    Logger.Info("--");
-                    Logger.Info("--  zone " + zone.Configuration.Id + " loaded.");
-                    Logger.Info("--");
-                    Logger.Info("------------------");
-
-                    e.Instance.Zones.Add(zone);
+                        Logger.Info("------------------");
+                        Logger.Info("--");
+                        Logger.Info("--  zone " + zone.Configuration.Id + " loaded.");
+                        Logger.Info("--");
+                        Logger.Info("------------------");
+                        zoneList.Add(zone);
+                    }
+                    //File.WriteAllBytes("zones.bit", MemoryPackSerializer.Serialize(zoneList));
+                    //Logger.Info("------ zones.bin cache wrote to disk.");
                 }
+                e.Instance.Zones.AddRange(zoneList);
             }).SingleInstance();
 
             _ = builder.RegisterType<TagHelper>();

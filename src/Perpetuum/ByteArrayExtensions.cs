@@ -1,4 +1,3 @@
-using MemoryPack;
 using System;
 using System.Runtime.InteropServices;
 
@@ -75,7 +74,7 @@ namespace Perpetuum
                 return default;
             }
 
-            return MemoryPackSerializer.Deserialize<T>(data);
+            throw new NotImplementedException();
         }
     }
 }

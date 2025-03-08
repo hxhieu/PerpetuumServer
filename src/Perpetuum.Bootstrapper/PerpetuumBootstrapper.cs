@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using Autofac.Builder;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Open.Nat;
 using Perpetuum.Accounting;
@@ -10,7 +9,7 @@ using Perpetuum.Bootstrapper.Modules;
 using Perpetuum.Common;
 using Perpetuum.Common.Loggers.Transaction;
 using Perpetuum.Data;
-using Perpetuum.DataContext.Context;
+using Perpetuum.DataContext;
 using Perpetuum.Deployers;
 using Perpetuum.EntityFramework;
 using Perpetuum.GenXY;
@@ -303,6 +302,19 @@ namespace Perpetuum.Bootstrapper
 
         private void InitContainer(string gameRoot)
         {
+            // IConfiguration
+            _ = _builder.Register(_ =>
+            {
+                return GlobalServiceManager.Configuration;
+            }).SingleInstance();
+
+            // DbContext
+            _ = _builder.Register(c =>
+            {
+                var globalConfig = c.Resolve<GlobalConfiguration>();
+                return DbContextModule.CreateDbContext(globalConfig.ConnectionString, GlobalServiceManager.LoggerFactory);
+            }).InstancePerLifetimeScope();
+
             _builder.RegisterModule(new CommandsModule());
             _builder.RegisterModule(new RequestHandlersModule());
             _builder.RegisterModule(new ZoneRequestHandlersModule());
@@ -322,21 +334,7 @@ namespace Perpetuum.Bootstrapper
             _builder.RegisterModule(new ZonesModule());
             _builder.RegisterModule(new PbsModule());
             _builder.RegisterModule(new AutoMapperModule());
-
-            // DbContext
-            _ = _builder.Register<IPerpetuumDbContext>(c =>
-            {
-                var globalConfig = c.Resolve<GlobalConfiguration>();
-                var optionsBuilder = new DbContextOptionsBuilder<PerpetuumDbContext>();
-                optionsBuilder.UseSqlServer(globalConfig.ConnectionString);
-                return new PerpetuumDbContext(optionsBuilder.Options);
-            }).InstancePerLifetimeScope();
-
-            // IConfiguration
-            _ = _builder.Register(_ =>
-            {
-                return ConfigurationManager.Load();
-            }).SingleInstance();
+            _builder.RegisterModule(new DbContextModule());
 
             _ = _builder.Register<Func<string, ObjectCache>>(x =>
             {

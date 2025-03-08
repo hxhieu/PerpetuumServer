@@ -26,7 +26,7 @@ namespace Perpetuum.Mapper
             //TotalOnlineTime = TimeSpan.FromMinutes(record.GetValue<int>("totalminsonline")),
             //Credit = record.GetValue<int>("credit")
 
-            CreateMap<DataContext.Models.Account, Accounting.Account>()
+            CreateMap<DataContext.Entities.Account, Accounting.Account>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.AccountId))
                 .ForMember(dest => dest.AccessLevel, opt => opt.MapFrom(src => (AccessLevel)src.AccLevel))
                 .ForMember(dest => dest.FirstCharacterDate, opt => opt.MapFrom(src => src.Firstcharacter))
