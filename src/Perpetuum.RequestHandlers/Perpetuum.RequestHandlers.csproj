@@ -35,6 +35,6 @@
     <PackageReference Include="System.Runtime.Caching" Version="9.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="9.0.2" />
   </ItemGroup>
 </Project>

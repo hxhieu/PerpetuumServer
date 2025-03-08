@@ -211,7 +211,7 @@ namespace Perpetuum.Bootstrapper
                     case HostState.Stopping:
                         {
                             _container.Resolve<IProcessManager>().Stop();
-                            NatDiscoverer.ReleaseAll();
+                            try { NatDiscoverer.ReleaseAll(); } catch { }
                             sender.State = HostState.Off;
                             break;
                         }
