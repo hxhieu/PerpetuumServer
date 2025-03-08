@@ -1,0 +1,1209 @@
+﻿{
+   "CodeGenerationMode": 5,
+   "ContextClassName": "PerpetuumDbContext",
+   "ContextNamespace": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": null,
+   "OutputContextPath": "Context",
+   "OutputPath": "Models",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "Perpetuum.DataContext",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 2,
+   "SelectedToBeGenerated": 0,
+   "T4TemplatePath": null,
+   "Tables": [
+      {
+         "Name": "[dbo].[accountcampaignitems]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[accountcreditqueue]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[accountextensionbought]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[accountextensionpenalty]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[accountextensionspent]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[accountonlinetime]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[accountpremiumpackages]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[accountredeemableitems]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[accounts]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[accounttransactionlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[adminCommandLog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[aggregatefields]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[aggregatemodifiers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[aggregatevalues]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[alliancemembers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[alliances]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[artifactloot]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[artifacts]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[artifactspawninfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[artifacttypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[attributeFlags]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[beamassignment]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[beams]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[bulletinentries]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[bulletins]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[calibrationdefaults]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[calibrationtemplateitems]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[campaigngoodiepacks]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[campaigns]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[categoryFlags]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[categorygroups]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[categorygroupsnames]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[centralbanklog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[centralbanktransactions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[channelbans]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[channelmembers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[channels]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[characterextensions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[characterhighscore]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[characterkillreports]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[charactermessages]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[characternickhistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[characternotes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[characternpcdeath]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[characterreimburselog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[characters]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[charactersettings]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[charactersocial]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[charactersparks]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[charactersparkteleports]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[charactertransactions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[chassisbonus]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cmails]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[combatlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[components]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[connectedips]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[containerlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationApplication]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationceotakeover]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationdocumentconfig]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationdocumentregistration]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationdocuments]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationhistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationleave]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationmembers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationnamehistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationrolehistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporations]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[corporationtransactions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[countries]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cw_corporation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cw_corporation_extension]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cw_major]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cw_major_extension]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cw_race]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cw_race_extension]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cw_school]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cw_school_extension]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cw_spark]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[cw_spark_extension]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[decor]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[decorcategories]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[defaultfieldscalculation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[definitionconfig]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[definitionconfigunits]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[dynamiccalibrationtemplates]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[effectcategories]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[effectdefaultmodifiers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[effects]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[enablerextensions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[entities]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[entitydefaults]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[entitystorage]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[entitytemplates]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[entitytrash]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[environmentdescription]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[environmentdescriptionstaging]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[epforactivitylog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[extensioncategories]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[extensionpointpenalty]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[extensionpoints]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[extensionpointworklog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[extensionprerequire]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[extensionremovelog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[extensions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[extensionsubscription]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[facilitymap]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[gameglobals]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[gang]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[gangmembers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[giftloots]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[hardwareinfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[harvestlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[hostconfig]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[icetracker]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[insurance]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[insuranceprices]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[intrusiondockingrightslog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[intrusioneffectlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[intrusionloot]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[intrusionproductionlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[intrusionproductionstack]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[intrusionsapdeploylog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[intrusionsaps]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[intrusionsitelog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[intrusionsitemessagelog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[intrusionsites]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[intrusionsitestabilitythreshold]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[itemcreation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[itemprices]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[itemresearchlevels]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[itemscore]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[itemshop]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[itemshoplocations]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[itemshoppresets]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[killreports]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[locktest]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[lootitems]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[lotteryitemweights]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[marketaverageprices]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[marketaveragesbycomponent]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[marketitems]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[markettaxlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[mineralconfigs]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[mineralnodes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[minerals]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[mineralscan]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[mininglog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionagents]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionbonus]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionconstants]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionenterpoints]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missiongrind]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionissuer]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionlocations]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionparticipants]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionpayoutlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionrequiredextensions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionrequiredmissions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionrequiredstanding]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionrewards]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionspotinfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionstandingchange]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missionstartitem]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missiontargets]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missiontargetsarchive]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missiontargetslog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missiontargettypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missiontoagent]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missiontolocation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[missiontypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[modulepropertymodifiers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[mtproductprices]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[news]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[newscategories]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcbossinfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npccontaineritems]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcescalactions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcflock]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcflockloot]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcinterzonegroup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npckills]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcloot]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcpoolpresets]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcpoolpresetvalues]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcpresence]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcrandomflockpool]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcreinforcements]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcreinforcementtypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcsafespawnpoints]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcspawn]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[npcSpecialTypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[nspoolmembers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[nspoolrelation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[nspools]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[nstemplates]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[opp_reimburselog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ownerincome]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[packageitems]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[packages]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[passablemappoints]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[paymentproducts]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[paypal_transactions_history]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[pbsconnections]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[pbslog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[pbsregisteredmembers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[pbsreimburse]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[pbstrash]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[plantdamagetype]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[plantrules]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[pollanswers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[pollchoices]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[polls]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[premadechatmessage]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[premademail]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[productioncost]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[productiondecalibration]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[productionduration]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[productionlines]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[productionlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[prototypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[rarematerials]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[reimbursementlog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[relays]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[relicloot]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[relicspawninfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[relictypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[reliczoneconfig]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[riftconfigs]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[riftdestinations]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[robotassembler]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[robotfittingpresets]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[robotsavedeffects]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[robotsetup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[robottemplaterelation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[robottemplates]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[runningproduction]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[runningproductionreserveditem]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[savedeffects]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[serverinfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[settings]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[siegeitems]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[slotFlags]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[sparkextensions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[sparks]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[standinglog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[standings]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[steamkeys]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[steamkeyscomp]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[storecategories]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[storeitems]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[strongholdexitconfig]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[techline]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[techlineincrement]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[techlinemember]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[techtree]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[techtreegroups]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[techtreelog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[techtreenodeprices]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[techtreepoints]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[techtreepointtypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[techtreeunlockednodes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[teleportdescriptions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[terraformprojectregistration]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[terraformprojects]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[tiertypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[traceips]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[traceroutelog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[trainingartifacts]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[trainingrewards]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[transactiontypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[transportassignments]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[transportassignmentslog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[transportassignmenttimes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[usercount]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[vendorpresets]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[vendorpresetvalues]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[vendors]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[voteentries]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[votes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[yellowpages]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[zoneeffects]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[zoneentities]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[zoneriftsconfig]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[zones]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[zonesectors]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[zoneteleportdevicemap]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[zoneuserentities]",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": null,
+   "UncountableWords": null,
+   "UseAsyncStoredProcedureCalls": true,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDatabaseNamesForRoutines": true,
+   "UseDateOnlyTimeOnly": false,
+   "UseDbContextSplitting": false,
+   "UseDecimalDataAnnotationForSprocResult": true,
+   "UseFluentApiOnly": false,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseInternalAccessModifiersForSprocsAndFunctions": false,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": true,
+   "UseNoDefaultConstructor": true,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UsePrefixNavigationNaming": false,
+   "UseSchemaFolders": false,
+   "UseSchemaNamespaces": false,
+   "UseSpatial": false,
+   "UseT4": false,
+   "UseT4Split": false
+}

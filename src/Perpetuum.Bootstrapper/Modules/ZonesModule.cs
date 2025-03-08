@@ -34,6 +34,7 @@ using Perpetuum.Zones.Terrains.Terraforming;
 using Perpetuum.Zones.Training.Reward;
 using Perpetuum.Zones.ZoneEntityRepositories;
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
@@ -185,7 +186,11 @@ namespace Perpetuum.Bootstrapper.Modules
             _ = builder.Register(c => c.Resolve<ZoneManager>()).As<IZoneManager>();
             _ = builder.RegisterType<ZoneManager>().OnActivated(e =>
             {
-                foreach (ZoneConfiguration c in e.Context.Resolve<IZoneConfigurationReader>().GetAll())
+                var zones = e.Context.Resolve<IZoneConfigurationReader>().GetAll();
+#if DEBUG
+                zones = zones.Take(1);
+#endif
+                foreach (ZoneConfiguration c in zones)
                 {
                     Func<ZoneConfiguration, IZone> zoneFactory = e.Context.Resolve<Func<ZoneConfiguration, IZone>>();
                     IZone zone = zoneFactory(c);

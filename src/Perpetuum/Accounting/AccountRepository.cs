@@ -1,4 +1,6 @@
+using AutoMapper;
 using Perpetuum.Data;
+using Perpetuum.DataContext.Context;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,7 +8,7 @@ using System.Linq;
 
 namespace Perpetuum.Accounting
 {
-    public class AccountRepository : IAccountRepository
+    public class AccountRepository(IPerpetuumDbContext dbContext, IMapper mapper) : IAccountRepository
     {
         public void Insert(Account account)
         {
@@ -136,13 +138,8 @@ namespace Perpetuum.Accounting
 
         public Account Get(string email, string password)
         {
-            IDataRecord record = Db
-                .Query("select * from accounts where email = @email and password = @password")
-                .SetParameter("email", email)
-                .SetParameter("password", password)
-                .ExecuteSingleRow();
-
-            return CreateAccountFromRecord(record);
+            var record = dbContext.Accounts.FirstOrDefault(x => x.Email == email && x.Password== password);
+            return record == null ? null : mapper.Map<Account>(record);
         }
 
         public IEnumerable<Account> GetBySteamId(string steamId)
