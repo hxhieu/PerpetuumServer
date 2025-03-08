@@ -5,10 +5,10 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AssemblyTitle>Perpetuum.Bootstrapper.PerpetuumBootstrapper</AssemblyTitle>
     <Product>Perpetuum.Bootstrapper.PerpetuumBootstrapper</Product>
-    <Copyright>Copyright ©  2017</Copyright>
+    <Copyright>Copyright © 2017</Copyright>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-    <Configurations>Debug;Release;Debug-1;Release-1</Configurations>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>..\..\bin\x64\Debug\Perpetuum.Bootstrapper\</OutputPath>
