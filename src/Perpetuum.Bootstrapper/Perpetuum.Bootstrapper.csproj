@@ -32,6 +32,7 @@
     <ProjectReference Include="..\Perpetuum\Perpetuum.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Caching" Version="9.0.2" />
   </ItemGroup>

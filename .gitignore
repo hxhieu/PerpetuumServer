@@ -260,3 +260,4 @@ __pycache__/
 *.pyc
 /PerpetuumTests
 .nuget/nuget.exe
+app[sS]ettings.Development.json

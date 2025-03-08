@@ -332,6 +332,12 @@ namespace Perpetuum.Bootstrapper
                 return new PerpetuumDbContext(optionsBuilder.Options);
             }).InstancePerLifetimeScope();
 
+            // IConfiguration
+            _ = _builder.Register(_ =>
+            {
+                return ConfigurationManager.Load();
+            }).SingleInstance();
+
             _ = _builder.Register<Func<string, ObjectCache>>(x =>
             {
                 return name => new MemoryCache(name);
