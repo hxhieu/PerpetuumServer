@@ -13,7 +13,7 @@ namespace Perpetuum.Zones.NpcSystem.Flocks
 
         protected override Position GetSpawnPosition(Position spawnOrigin)
         {
-            if (Presence is DynamicPresenceExtended presence)
+            if (Presence is DynamicPresenceExtended presence && presence.Zone != null)
             {
                 spawnOrigin = presence.SpawnLocation.Clamp(Presence.Zone.Size);
             }
@@ -22,7 +22,7 @@ namespace Perpetuum.Zones.NpcSystem.Flocks
 
         protected override Position GetHomePosition(Position spawnOrigin)
         {
-            if (Presence is DynamicPresenceExtended presence)
+            if (Presence is DynamicPresenceExtended presence && presence.Zone != null)
             {
                 spawnOrigin = presence.DynamicPosition.Clamp(Presence.Zone.Size);
             }

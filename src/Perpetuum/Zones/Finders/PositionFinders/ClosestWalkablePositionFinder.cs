@@ -8,12 +8,12 @@ namespace Perpetuum.Zones.Finders.PositionFinders
         private readonly double _slope = 4.0;
         private readonly Position _origin;
 
-        public ClosestWalkablePositionFinder(IZone zone,Position origin,Unit unit) : this(zone,origin,unit.Slope)
+        public ClosestWalkablePositionFinder(IZone zone, Position origin, Unit unit) : this(zone, origin, unit.Slope)
         {
 
         }
 
-        public ClosestWalkablePositionFinder(IZone zone,Position origin,double slope = 4.0) : base(zone)
+        public ClosestWalkablePositionFinder(IZone zone, Position origin, double slope = 4.0) : base(zone)
         {
             _slope = slope;
             _origin = origin;
@@ -21,7 +21,13 @@ namespace Perpetuum.Zones.Finders.PositionFinders
 
         protected override bool Find(IZone zone, out Position result)
         {
-            if (zone.IsWalkable(_origin,_slope) || Math.Abs(_slope) < double.Epsilon)
+            if (zone == null)
+            {
+                result = Position.Empty;
+                return false;
+            }
+
+            if (zone.IsWalkable(_origin, _slope) || Math.Abs(_slope) < double.Epsilon)
             {
                 result = _origin;
                 return true;
@@ -49,7 +55,7 @@ namespace Perpetuum.Zones.Finders.PositionFinders
                     return false;
                 }
 
-                if (zone.IsWalkable(p,_slope))
+                if (zone.IsWalkable(p, _slope))
                 {
                     result = p.Center;
                     return true;

@@ -338,6 +338,11 @@ namespace Perpetuum.Units
 
         public void AddToZone(IZone zone, Position position, ZoneEnterType enterType = ZoneEnterType.Default, IBeamBuilder enterBeamBuilder = null)
         {
+            if (zone == null)
+            {
+                return;
+            }
+
             _zone = zone;
             CurrentPosition = zone.FixZ(position);
 

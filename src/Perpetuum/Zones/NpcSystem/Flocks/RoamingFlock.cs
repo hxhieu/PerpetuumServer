@@ -33,7 +33,7 @@ namespace Perpetuum.Zones.NpcSystem.Flocks
 
         protected override Position GetSpawnPosition(Position spawnOrigin)
         {
-            if (Presence is IRoamingPresence roaming)
+            if (Presence is IRoamingPresence roaming && Presence.Zone != null)
             {
                 spawnOrigin = roaming.SpawnOrigin.Clamp(Presence.Zone.Size);
             }

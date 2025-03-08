@@ -18,7 +18,7 @@ namespace Perpetuum.Zones.NpcSystem.Presences.RandomExpiringPresence
 
         protected override Position GetSpawnPosition(Position spawnOrigin)
         {
-            if (Presence is IRandomStaticPresence pres)
+            if (Presence is IRandomStaticPresence pres && pres.Zone != null)
             {
                 spawnOrigin = pres.SpawnOrigin.Clamp(Presence.Zone.Size);
             }

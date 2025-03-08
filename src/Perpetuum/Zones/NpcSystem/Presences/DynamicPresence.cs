@@ -57,7 +57,7 @@ namespace Perpetuum.Zones.NpcSystem.Presences
 
         public override Area Area
         {
-            get { return Zone.Size.ToArea(); }
+            get { return Zone != null ? Zone.Size.ToArea() : Area.Empty; }
         }
 
         protected override void OnPresenceExpired()

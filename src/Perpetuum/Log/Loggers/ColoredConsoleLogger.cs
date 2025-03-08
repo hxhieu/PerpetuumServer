@@ -1,41 +1,33 @@
+using Serilog;
 using System;
+using Serilogger = Serilog.ILogger;
 
 namespace Perpetuum.Log.Loggers
 {
     public class ColoredConsoleLogger : ConsoleLogger<LogEvent>
     {
-        private readonly ConsoleColor _defaultColor = Console.ForegroundColor;
+        private static readonly Lazy<Serilogger> _logger = new(() => new LoggerConfiguration()
+            .ReadFrom.Configuration(ConfigurationManager.Load())
+            .CreateLogger());
 
-        public ColoredConsoleLogger(ILogEventFormatter<LogEvent,string> formatter) : base(formatter)
-        {
-        }
+        public ColoredConsoleLogger(ILogEventFormatter<LogEvent, string> formatter) : base(formatter) { }
 
         public override void Log(LogEvent logEvent)
         {
-            try
+            switch (logEvent.LogType)
             {
-                switch (logEvent.LogType)
-                {
-                    case LogType.Warning:
-                    {
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        break;
-                    }
-                    case LogType.Error:
-                    {
-                        {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.Beep(4000, 30);
-                            break;
-                        }
-                    }
-                }
-
-                base.Log(logEvent);
-            }
-            finally
-            {
-                Console.ForegroundColor = _defaultColor;
+                case LogType.Warning:
+                    _logger.Value.Warning(logEvent.Message);
+                    break;
+                case LogType.Error:
+                    _logger.Value.Error(logEvent.ThrownException, logEvent.Message);
+                    break;
+                case LogType.None:
+                    _logger.Value.Debug(logEvent.Message);
+                    break;
+                default:
+                    _logger.Value.Information(logEvent.Message);
+                    break;
             }
         }
     }
