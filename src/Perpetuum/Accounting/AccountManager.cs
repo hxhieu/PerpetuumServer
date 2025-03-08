@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Transactions;
+using Microsoft.Data.SqlClient;
 using Perpetuum.Accounting.Characters;
 using Perpetuum.Data;
 using Perpetuum.Log;

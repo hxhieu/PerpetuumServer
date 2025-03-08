@@ -14,9 +14,15 @@ namespace Perpetuum.Zones.Intrusion
     /// </summary>
     public class PassiveHackingSAP : SAP
     {
+        //private static readonly TimeSpan _updateScoreInterval = TimeSpan.FromSeconds(2);
+        //private static TimeSpan _takeoverTime = TimeSpan.FromMinutes(8);
+        //private static readonly int _maxScore = (int) _takeoverTime.Divide(_updateScoreInterval).Ticks;
+        
+        // TODO: .NET 8 upgrade
         private static readonly TimeSpan _updateScoreInterval = TimeSpan.FromSeconds(2);
-        private static TimeSpan _takeoverTime = TimeSpan.FromMinutes(8);
-        private static readonly int _maxScore = (int) _takeoverTime.Divide(_updateScoreInterval).Ticks;
+        private static readonly TimeSpan _takeoverTime = TimeSpan.FromMinutes(8);
+        private static readonly int _maxScore = (int)(_takeoverTime.Ticks / _updateScoreInterval.Ticks);
+        
         private const int RANGE = 5;
         private readonly IntervalTimer _updateScoreTimer = new IntervalTimer(_updateScoreInterval);
 

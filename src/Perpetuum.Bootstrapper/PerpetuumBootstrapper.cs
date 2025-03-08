@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Autofac.Builder;
+using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using Open.Nat;
 using Perpetuum.Accounting;
@@ -58,7 +59,6 @@ using Perpetuum.Zones.Teleporting;
 using Perpetuum.Zones.Terrains;
 using Perpetuum.Zones.Terrains.Terraforming;
 using System;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Numerics;

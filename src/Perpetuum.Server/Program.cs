@@ -1,108 +1,41 @@
-﻿using System;
-using System.IO;
-using Microsoft.Extensions.CommandLineUtils;
-using Perpetuum.Bootstrapper;
+﻿using Perpetuum.Bootstrapper;
 
 namespace Perpetuum.Server
 {
-    public static class Program
+    internal class Program
     {
-
-        static int Main(string[] args)
+        static void Main(string[] args)
         {
-            var app = new CommandLineApplication();
-            app.HelpOption("-h|--help");
-            var gameRoot = app.Argument("<GAMEROOT>","d:\\server\\genxy");
-            var dumpCommands = app.Option("-dc|--dump-commands", "dump commands", CommandOptionType.NoValue);
+            var gameRoot = "D:\\PerpetuumServer\\data";
+            if (!Directory.Exists(gameRoot))
+            {
+                throw new Exception($"GameRoot folder was not found: {gameRoot}");
+            }
 
             var bootstrapper = new PerpetuumBootstrapper();
 
-            app.OnExecute(() =>
+            bootstrapper.Init(gameRoot);
+
+            if (bootstrapper.TryInitUpnp(out bool upnpSuccess))
             {
-                if (dumpCommands.HasValue())
+                if (!upnpSuccess)
                 {
-                    Console.WriteLine("dumping commands to commands.txt");
-                    bootstrapper.WriteCommandsToFile("commands.txt");
-                    return 0;
+                    //System Error Codes (500-999)
+                    // signal upnp attempt error with custom errorcode
+                    throw new Exception(upnpSuccess.ToString());
                 }
-
-                if (gameRoot.Value == null)
+                Console.CancelKeyPress += (sender, eventArgs) =>
                 {
-                    return 2;
-                }
+                    Console.WriteLine("");
+                    Console.WriteLine("STOPPING HOST IN 4 SECONDS");
+                    Console.WriteLine("");
 
-                if (!Directory.Exists(gameRoot.Value))
-                {
-                    Console.WriteLine($"GameRoot folder was not found: {gameRoot.Value}");
-                    return 3;
-                }
-
-                bootstrapper.Init(gameRoot.Value);
-
-                if (bootstrapper.TryInitUpnp(out bool upnpSuccess))
-                {
-                    if (!upnpSuccess)
-                    {
-                        //System Error Codes (500-999)
-                        // signal upnp attempt error with custom errorcode
-                        return 2000;
-                    }
-                }
-
-                return 0;
-            });
-
-            var err = 0;
-            try
-            {
-                err = app.Execute(args);
-                if (err == 0)
-                {
-                    Console.CancelKeyPress += (sender,eventArgs) =>
-                    {
-                        Console.WriteLine("");
-                        Console.WriteLine("STOPPING HOST IN 4 SECONDS");
-                        Console.WriteLine("");
-
-                        eventArgs.Cancel = true;
-                        bootstrapper.Stop(TimeSpan.FromSeconds(4));
-                    };
-
-                    bootstrapper.Start();
-                    bootstrapper.WaitForStop();
-                }
-                else
-                {
-                    app.ShowHelp();
-                }
+                    eventArgs.Cancel = true;
+                    bootstrapper.Stop(TimeSpan.FromSeconds(4));
+                };
+                bootstrapper.Start();
+                bootstrapper.WaitForStop();
             }
-            catch (Exception ex)
-            {
-                DisplayException(ex);
-                err = 1; // generic error
-            }
-
-            return err;
         }
-
-        private static void DisplayException(Exception ex)
-        {
-            if (ex is AggregateException aex)
-            {
-                foreach (var innerException in aex.InnerExceptions)
-                {
-                    DisplayException(innerException);    
-                }
-                return;
-            }
-
-            if (ex.InnerException != null)
-            {
-                DisplayException(ex.InnerException);
-            }
-
-            Console.WriteLine(ex.Message);
-        }
-
     }
 }

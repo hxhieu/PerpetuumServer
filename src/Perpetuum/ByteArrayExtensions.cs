@@ -1,7 +1,6 @@
+using MemoryPack;
 using System;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Perpetuum
 {
@@ -52,17 +51,31 @@ namespace Perpetuum
         /// <summary>
         /// Converts a byte array to an object
         /// </summary>
+        //public static T Deserialize<T>(this byte[] data)
+        //{
+        //    if (data == null)
+        //    {
+        //        return default(T);
+        //    }
+
+        //    using (var ms = new MemoryStream(data))
+        //    {
+        //        return (T)(new BinaryFormatter().Deserialize(ms));
+        //    }
+        //}
+
+        // TODO: .NET 8 upgrade
+        /// <summary>
+        /// Converts a byte array to an object
+        /// </summary>
         public static T Deserialize<T>(this byte[] data)
         {
-            if (data == null)
+            if (data is null || data.Length == 0)
             {
-                return default(T);
+                return default;
             }
 
-            using (var ms = new MemoryStream(data))
-            {
-                return (T)(new BinaryFormatter().Deserialize(ms));
-            }
+            return MemoryPackSerializer.Deserialize<T>(data);
         }
     }
 }

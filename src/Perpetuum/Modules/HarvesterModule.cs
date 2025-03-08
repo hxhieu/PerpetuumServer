@@ -77,10 +77,17 @@ namespace Perpetuum.Modules
                 return 0;
             }
 
-            TimeSpan avgCycleTime = activeGathererModules.Select(m => m.CycleTime).Average();
-            TimeSpan t = TimeSpan.FromDays(1).Divide(avgCycleTime);
-            double chance = (double)MAX_EP_PER_DAY / t.Ticks;
-            chance /= activeGathererModules.Length;
+            //TimeSpan avgCycleTime = activeGathererModules.Select(m => m.CycleTime).Average();
+            //TimeSpan t = TimeSpan.FromDays(1).Divide(avgCycleTime);
+            //double chance = (double)MAX_EP_PER_DAY / t.Ticks;
+            
+            // TODO: .NET 8 upgrade
+            TimeSpan avgCycleTime = TimeSpan.FromTicks(
+                (long)activeGathererModules.Select(m => m.CycleTime.Ticks).Average()
+            );
+            double ratio = (double)TimeSpan.FromDays(1).Ticks / avgCycleTime.Ticks;
+            double chance = (double)MAX_EP_PER_DAY / ratio;
+
             double rand = FastRandom.NextDouble();
 
             return rand <= chance
