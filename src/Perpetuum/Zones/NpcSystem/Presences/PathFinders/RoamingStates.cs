@@ -117,6 +117,10 @@ namespace Perpetuum.Zones.NpcSystem.Presences.PathFinders
 
         protected virtual bool IsInRange(Position position, int range)
         {
+            if (_presence.Zone?.Players == null)
+            {
+                return false;
+            }
             return _presence.Zone.Players.WithinRange(position, range).Any();
         }
 

@@ -188,7 +188,7 @@ namespace Perpetuum.Bootstrapper.Modules
             {
                 var zones = e.Context.Resolve<IZoneConfigurationReader>().GetAll();
 #if DEBUG
-                zones = zones.Take(1);
+                zones = zones.OrderByDescending(x => x.Id).Take(1);
 #endif
                 foreach (ZoneConfiguration c in zones)
                 {

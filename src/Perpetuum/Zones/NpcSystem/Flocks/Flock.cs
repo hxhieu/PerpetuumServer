@@ -116,7 +116,7 @@ namespace Perpetuum.Zones.NpcSystem.Flocks
 
             if (!finder.Find(out spawnPosition))
             {
-                Log($"invalid spawnposition in CreateMemberInZone: {spawnPosition} {Configuration.Name} {Presence.Configuration.Name} zone:{zone.Id}");
+                Log($"invalid spawnposition in CreateMemberInZone: {spawnPosition} {Configuration.Name} {Presence.Configuration.Name} zone:{zone?.Id}");
             }
 
             npc.Behavior = GetBehavior();
@@ -138,7 +138,7 @@ namespace Perpetuum.Zones.NpcSystem.Flocks
             npc.AddToZone(zone, spawnPosition, ZoneEnterType.NpcSpawn);
 
             AddMember(npc);
-            Log($"member spawned to zone:{zone.Id} EID:{npc.Eid}");
+            Log($"member spawned to zone:{zone?.Id} EID:{npc.Eid}");
         }
 
         protected virtual void OnMemberDead(Unit killer, Unit npc)
@@ -155,7 +155,7 @@ namespace Perpetuum.Zones.NpcSystem.Flocks
         {
             var spawnRangeMin = Configuration.SpawnRange.Min;
             var spawnRangeMax = Configuration.SpawnRange.Max.Min(HomeRange);
-            var spawnPosition = spawnOrigin.GetRandomPositionInRange2D(spawnRangeMin, spawnRangeMax).Clamp(Presence.Zone.Size);
+            var spawnPosition = spawnOrigin.GetRandomPositionInRange2D(spawnRangeMin, spawnRangeMax).Clamp(Presence.ZoneSize);
 
             return spawnPosition;
         }

@@ -115,6 +115,11 @@ namespace Perpetuum.Zones.NpcSystem
 
         private void SetEP(IZone zone)
         {
+            if (zone == null)
+            {
+                return;
+            }
+
             if (zone.Configuration.Type == ZoneType.Training)
             {
                 EP = 0;
