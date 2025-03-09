@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Perpetuum.Configuration;
 using Serilog;
 using System;
 using System.Threading;
@@ -31,11 +32,19 @@ namespace Perpetuum
             });
         });
 
+        private static readonly Lazy<DebugSettings> _debugSettings = new (()=>{
+            var settings = new DebugSettings();
+            Configuration.GetSection("Debugging").Bind(settings);
+            return settings;
+        });
+
         public static bool ZonesLoaded { get; set; }
 
         public static IConfiguration Configuration => _configuration.Value;
 
         public static ILoggerFactory LoggerFactory => _loggerFactory.Value;
+
+        public static DebugSettings DebugSettings => _debugSettings.Value;
 
         /// <summary>
         /// Invoke the provided action, only after all zones loaded

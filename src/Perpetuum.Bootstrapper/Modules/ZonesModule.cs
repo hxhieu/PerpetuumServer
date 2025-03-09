@@ -35,6 +35,7 @@ using Perpetuum.Zones.Training.Reward;
 using Perpetuum.Zones.ZoneEntityRepositories;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -188,6 +189,13 @@ namespace Perpetuum.Bootstrapper.Modules
             _ = builder.RegisterType<ZoneManager>().OnActivated(e =>
             {
                 var zones = e.Context.Resolve<IZoneConfigurationReader>().GetAll();
+#if DEBUG
+                // Load debug zones from configuration
+                if (GlobalServiceManager.DebugSettings.ZonesToLoad.Length > 0)
+                {
+                    zones = zones.Where(x => GlobalServiceManager.DebugSettings.ZonesToLoad.Contains(x.Id));
+                }
+#endif
                 var zoneList = new List<IZone>();
                 var zoneFactory = e.Context.Resolve<Func<ZoneConfiguration, IZone>>();
                 var effectHandler = e.Context.Resolve<Func<IZone, EnvironmentalEffectHandler>>();
@@ -203,7 +211,7 @@ namespace Perpetuum.Bootstrapper.Modules
                     Logger.Info("--  zone " + zone.Configuration.Id + " loaded.");
                     Logger.Info("--");
                     Logger.Info("------------------");
-                    
+
                     zoneList.Add(zone);
                 });
 
