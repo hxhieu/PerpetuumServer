@@ -158,12 +158,15 @@ namespace Perpetuum.Zones
 
         public void LoadUnits()
         {
-            foreach (KeyValuePair<Unit, Position> kvp in UnitService.GetAll())
+            GlobalServiceManager.PostZonesLoadedAction(() =>
             {
-                Unit unit = kvp.Key;
-                Position position = kvp.Value;
-                unit.AddToZone(this, position);
-            }
+                foreach (KeyValuePair<Unit, Position> kvp in UnitService.GetAll())
+                {
+                    Unit unit = kvp.Key;
+                    Position position = kvp.Value;
+                    unit.AddToZone(this, position);
+                }
+            });
         }
 
         private void UpdateSessions(TimeSpan time)

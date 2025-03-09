@@ -75,14 +75,17 @@ namespace Perpetuum.Zones.NpcSystem.Flocks
 
         public void SpawnAllMembers()
         {
-            var totalToSpawn = Configuration.FlockMemberCount - MembersCount;
-
-            for (var i = 0; i < totalToSpawn; i++)
+            GlobalServiceManager.PostZonesLoadedAction(() =>
             {
-                CreateMemberInZone();
-            }
+                var totalToSpawn = Configuration.FlockMemberCount - MembersCount;
 
-            Log($"{Configuration.FlockMemberCount} NPCs created");
+                for (var i = 0; i < totalToSpawn; i++)
+                {
+                    CreateMemberInZone();
+                }
+
+                Log($"{Configuration.FlockMemberCount} NPCs created");
+            });
         }
 
         public virtual void Update(TimeSpan time)

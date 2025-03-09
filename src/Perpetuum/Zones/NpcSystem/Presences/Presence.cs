@@ -162,16 +162,19 @@ namespace Perpetuum.Zones.NpcSystem.Presences
 
         protected void CreateAndAddFlocks(IEnumerable<IFlockConfiguration> configurations)
         {
-            var builder = _flocks.ToBuilder();
-
-            foreach (var configuration in configurations)
+            GlobalServiceManager.PostZonesLoadedAction(() =>
             {
-                var flock = CreateFlock(configuration);
-                builder.Add(flock);
-                OnFlockAdded(flock);
-            }
+                var builder = _flocks.ToBuilder();
 
-            _flocks = builder.ToImmutable();
+                foreach (var configuration in configurations)
+                {
+                    var flock = CreateFlock(configuration);
+                    builder.Add(flock);
+                    OnFlockAdded(flock);
+                }
+
+                _flocks = builder.ToImmutable();
+            });
         }
 
         protected Flock CreateAndAddFlock(int flockID)
