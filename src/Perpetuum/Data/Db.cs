@@ -1,6 +1,4 @@
-﻿using Perpetuum.Log;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.Threading.Tasks;
 using System.Transactions;
 
@@ -17,17 +15,9 @@ namespace Perpetuum.Data
 
         public static DbQuery Query(string commandText)
         {
-            var stackTrace = new StackTrace();
-            var callingFrame = stackTrace.GetFrame(1);  // 1 is the caller's frame
-            var callingMethod = callingFrame.GetMethod();
-            var parameters = "";
-            callingMethod.GetParameters().ForEach(x =>
-            {
-                parameters += x.ParameterType.Name + " " + x.Name + ", ";
-            });
-            parameters = parameters.Trim(' ', ',');
-            Logger.Error($"--------------------- {callingMethod.DeclaringType.FullName} -> {callingMethod.Name} ({parameters})");
-            return DbQueryFactory().CommandText(commandText);
+            var query = DbQueryFactory().CommandText(commandText);
+            DbQuery.LogCaller();
+            return query;
         }
 
         public static Task CreateTransactionAsync(Action<TransactionScope> action)

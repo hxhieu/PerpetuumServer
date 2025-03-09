@@ -28,45 +28,9 @@ namespace Perpetuum.Accounting
 
         public void Update(Account account)
         {
-            //var record = dbContext.Accounts.FirstOrDefault(x => x.AccountId == account.Id);
-            //if (record != null)
-            //{
-            //    record = mapper.Map(account, record);
-            //    //dbContext.S
-            //}
-            int q = Db
-                .Query(@"update accounts set 
-                    email = @email,
-                    password = @password,
-                    accLevel = @accessLevel,
-                    state = @state,
-                    validuntil = @validUntil,
-                    payingcustomer = @payingcustomer,
-                    firstcharacter = @firstcharacter,
-                    isloggedin = @isloggedin,
-                    lastloggedin = @lastloggedin,
-                    totalminsonline = @totalminsonline,
-                    credit = @credit,
-                    bantime = @bantime,
-                    banlength = @banlength,
-                    bannote = @bannote
-                    where accountid = @id")
-                .SetParameter("email", account.Email)
-                .SetParameter("password", account.Password)
-                .SetParameter("accessLevel", (int)account.AccessLevel)
-                .SetParameter("state", account.State)
-                .SetParameter("validUntil", account.ValidUntil)
-                .SetParameter("payingcustomer", account.PayingCustomer)
-                .SetParameter("firstcharacter", account.FirstCharacterDate)
-                .SetParameter("isloggedin", account.IsLoggedIn)
-                .SetParameter("lastloggedin", account.LastLoggedIn)
-                .SetParameter("totalminsonline", (int)account.TotalOnlineTime.TotalMinutes)
-                .SetParameter("credit", account.Credit)
-                .SetParameter("bantime", account.BanTime)
-                .SetParameter("banlength", (int)account.BanLength.TotalSeconds)
-                .SetParameter("bannote", account.BanNote)
-                .SetParameter("id", account.Id)
-                .ExecuteNonQuery().ThrowIfEqual(0, ErrorCodes.SQLUpdateError);
+            var record = mapper.Map<DataContext.Entities.Account>(account);
+            repository.Update(record);
+            repository.SaveChanges();
         }
 
         public AccessLevel GetAccessLevel(int accountId)

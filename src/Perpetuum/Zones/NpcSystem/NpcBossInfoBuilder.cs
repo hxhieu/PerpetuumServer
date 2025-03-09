@@ -1,4 +1,6 @@
 ﻿using Perpetuum.Data;
+using Perpetuum.DataContext;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.Services.EventServices;
 using Perpetuum.Services.RiftSystem;
 using Perpetuum.Zones.NpcSystem.Flocks;
@@ -12,7 +14,7 @@ namespace Perpetuum.Zones.NpcSystem
         private readonly ICustomRiftConfigReader _customRiftConfigReader;
         private readonly EventListenerService _eventChannel;
 
-        public NpcBossInfoBuilder(ICustomRiftConfigReader customRiftConfigReader, EventListenerService eventChannel)
+        public NpcBossInfoBuilder(ICustomRiftConfigReader customRiftConfigReader, EventListenerService eventChannel, IDbRepository<Npcbossinfo> npcBossInfoRepo)
         {
             _customRiftConfigReader = customRiftConfigReader;
             _eventChannel = eventChannel;

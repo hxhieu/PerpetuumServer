@@ -134,7 +134,6 @@ namespace Perpetuum.Bootstrapper
             _builder = new ContainerBuilder();
             InitContainer(gameRoot);
             _container = _builder.Build();
-            Logger.Current = _container.Resolve<ILogger<LogEvent>>();
 
             GlobalConfiguration config = _container.Resolve<GlobalConfiguration>();
             _container.Resolve<IHostStateService>().State = HostState.Init;
@@ -287,17 +286,8 @@ namespace Perpetuum.Bootstrapper
         /// </summary>
         private static void InitGame(IComponentContext container)
         {
-            //the current host has to clean up things in the onlinehost table, and other runtime tables
-            _ = Db.Query().CommandText("initServer").ExecuteNonQuery();
-
-            GlobalConfiguration globalConfiguration = container.Resolve<GlobalConfiguration>();
-            if (!string.IsNullOrEmpty(globalConfiguration.PersonalConfig))
-            {
-                _ = Db.Query().CommandText(globalConfiguration.PersonalConfig).ExecuteNonQuery();
-                Logger.Info("Personal sp executed:" + globalConfiguration.PersonalConfig);
-            }
-
-            Logger.Info("DB init done.");
+            var hostRepo = container.Resolve<HostRepository>();
+            hostRepo.InitServer();
         }
 
         private void InitContainer(string gameRoot)
@@ -306,6 +296,11 @@ namespace Perpetuum.Bootstrapper
             _ = _builder.Register(_ =>
             {
                 return GlobalServiceManager.Configuration;
+            }).SingleInstance();
+
+            _ = _builder.Register(_ =>
+            {
+                return GlobalServiceManager.LoggerFactory;
             }).SingleInstance();
 
             // DbContext
@@ -462,6 +457,8 @@ namespace Perpetuum.Bootstrapper
                 GlobalConfiguration cfg = x.Resolve<GlobalConfiguration>();
                 return new SteamManager(cfg.SteamAppID, cfg.SteamKey);
             }).As<ISteamManager>();
+
+            _ = _builder.RegisterType<HostRepository>().AsSelf().SingleInstance();
         }
 
         private void InitRelayManager()

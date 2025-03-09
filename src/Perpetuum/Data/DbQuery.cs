@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Perpetuum.Log;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Linq;
 using System.Transactions;
 
@@ -11,6 +13,20 @@ namespace Perpetuum.Data
 
     public class DbQuery
     {
+        public static void LogCaller(int depth = 0)
+        {
+            var stackTrace = new StackTrace();
+            var callingFrame = stackTrace.GetFrame(depth + 1);  // the caller's frame
+            var callingMethod = callingFrame.GetMethod();
+            var parameters = "";
+            callingMethod.GetParameters().ForEach(x =>
+            {
+                parameters += x.ParameterType.Name + " " + x.Name + ", ";
+            });
+            parameters = parameters.Trim(' ', ',');
+            Logger.Error($"!>>> RAW SQL CALL: {callingMethod.DeclaringType.FullName} -> {callingMethod.Name} ({parameters})");
+        }
+
         private readonly DbConnectionFactory _connectionFactory;
 
         private string _commandText = string.Empty;
@@ -27,20 +43,20 @@ namespace Perpetuum.Data
             return this;
         }
 
-        public DbQuery SetParameters(IEnumerable<KeyValuePair<string,object>> parameters)
+        public DbQuery SetParameters(IEnumerable<KeyValuePair<string, object>> parameters)
         {
             if (parameters == null)
                 return this;
 
             foreach (var kvp in parameters)
             {
-                SetParameter(kvp.Key,kvp.Value);
+                SetParameter(kvp.Key, kvp.Value);
             }
 
             return this;
         }
 
-        public DbQuery SetParameter(string name,object value)
+        public DbQuery SetParameter(string name, object value)
         {
             if (_parameters == null)
                 _parameters = new Dictionary<string, object>();
@@ -49,7 +65,7 @@ namespace Perpetuum.Data
             return this;
         }
 
-        private T ExecuteHelper<T>(Func<IDbCommand,T> execute)
+        private T ExecuteHelper<T>(Func<IDbCommand, T> execute)
         {
             using (var connection = _connectionFactory())
             {
@@ -75,6 +91,7 @@ namespace Perpetuum.Data
 
                 using (command)
                 {
+                    LogCaller(2); // ExecuteHelper + ExecuteXXX
                     return execute(command);
                 }
             }
@@ -109,7 +126,7 @@ namespace Perpetuum.Data
 
         public T ExecuteScalar<T>()
         {
-            return (T) ExecuteHelper((cmd) =>
+            return (T)ExecuteHelper((cmd) =>
             {
                 var value = cmd.ExecuteScalar();
                 if (value == DBNull.Value)

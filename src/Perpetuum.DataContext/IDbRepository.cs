@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Perpetuum.DataContext.Context;
 using System.Linq.Expressions;
 using Z.EntityFramework.Plus;
@@ -7,11 +8,14 @@ namespace Perpetuum.DataContext
 {
     public interface IDbRepository<T> where T : class
     {
-        T? GetOne(Expression<Func<T, bool>> predicate, bool fromCache = false);
-        IEnumerable<T> GetMany(Expression<Func<T, bool>> predicate, bool fromCache = false);
+        T? GetOne(Expression<Func<T, bool>> predicate, TimeSpan? cacheTime = null);
+        List<T> GetMany(Expression<Func<T, bool>> predicate, TimeSpan? cacheTime = null);
         void Add(T entity);
         void Update(T entity, params Expression<Func<T, object>>[] updatedProperties);
+        int UpdateBatch(Expression<Func<T, bool>> predicate, Expression<Func<T, T>> updateFactory);
         void Delete(T entity);
+        int DeleteBatch(Expression<Func<T, bool>> predicate);
+        int ExecuteNonQuerySql(string sql, params object[] parameters);
         int SaveChanges();
     }
 
@@ -26,20 +30,35 @@ namespace Perpetuum.DataContext
             _dbSet = _context.Set<T>();
         }
 
-        // Get one entity matching the predicate
-        public T? GetOne(Expression<Func<T, bool>> predicate, bool fromCache)
+        // Save changes to the database
+        public int SaveChanges()
         {
-            return fromCache
-                ? _dbSet.DeferredFirstOrDefault(predicate).FromCache()
-                : _dbSet.FirstOrDefault(predicate);
+            return _context.SaveChanges();
+        }
+
+        public int ExecuteNonQuerySql(string sql, params object[] parameters)
+        {
+            return _context.Database.ExecuteSqlRaw(sql, parameters);
+        }
+
+        // Get one entity matching the predicate
+        public T? GetOne(Expression<Func<T, bool>> predicate, TimeSpan? cacheTime)
+        {
+            var cacheOptions = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = cacheTime?? TimeSpan.FromSeconds(10)
+            };
+            return _dbSet.AsNoTracking().DeferredFirstOrDefault(predicate).FromCache(cacheOptions);
         }
 
         // Get many entities matching the predicate
-        public IEnumerable<T> GetMany(Expression<Func<T, bool>> predicate, bool fromCache)
+        public List<T> GetMany(Expression<Func<T, bool>> predicate, TimeSpan? cacheTime)
         {
-            return fromCache
-                ? _dbSet.Where(predicate).FromCache().ToList()
-                : _dbSet.Where(predicate).ToList();
+            var cacheOptions = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = cacheTime?? TimeSpan.FromSeconds(10)
+            };
+            return _dbSet.AsNoTracking().Where(predicate).FromCache(cacheOptions).ToList();
         }
 
         // Add a new entity to the database
@@ -51,19 +70,19 @@ namespace Perpetuum.DataContext
         // Update an entity. If no specific properties are provided, update all columns.
         public void Update(T entity, params Expression<Func<T, object>>[] updatedProperties)
         {
-            _dbSet.Attach(entity); // Attach the entity to the context (if not already tracked)
+            var entry = _context.Entry(entity);
 
             if (updatedProperties == null || updatedProperties.Length == 0)
             {
                 // If no specific properties are provided, mark the entire entity as modified
-                _context.Entry(entity).State = EntityState.Modified;
+                entry.State = EntityState.Modified;
             }
             else
             {
                 // If specific properties are provided, only update those fields
                 foreach (var property in updatedProperties)
                 {
-                    _context.Entry(entity).Property(property).IsModified = true;
+                    entry.Property(property).IsModified = true;
                 }
             }
         }
@@ -74,10 +93,14 @@ namespace Perpetuum.DataContext
             _dbSet.Remove(entity);
         }
 
-        // Save changes to the database
-        public int SaveChanges()
+        public int UpdateBatch(Expression<Func<T, bool>> predicate, Expression<Func<T, T>> updateFactory)
         {
-            return _context.SaveChanges();
+            return _dbSet.Where(predicate).Update(updateFactory);
+        }
+
+        public int DeleteBatch(Expression<Func<T, bool>> predicate)
+        {
+            return _dbSet.Where(predicate).Delete();
         }
     }
 
