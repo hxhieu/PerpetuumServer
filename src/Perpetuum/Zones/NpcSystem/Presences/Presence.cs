@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Perpetuum.Zones.NpcSystem.Presences
 {
@@ -166,12 +167,13 @@ namespace Perpetuum.Zones.NpcSystem.Presences
             {
                 var builder = _flocks.ToBuilder();
 
-                foreach (var configuration in configurations)
+                // Create everything in parallel
+                Parallel.ForEach(configurations, configuration =>
                 {
                     var flock = CreateFlock(configuration);
                     builder.Add(flock);
                     OnFlockAdded(flock);
-                }
+                });
 
                 _flocks = builder.ToImmutable();
             });

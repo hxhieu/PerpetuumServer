@@ -28,6 +28,8 @@ namespace Perpetuum.Zones.NpcSystem.Presences
 
         public RandomFlockInfo[] GetByPresence(Presence presence)
         {
+            // TODO: Hacks for parallel load, need to evaluate the impact
+            if (presence == null) return [];
             return _flockInfos.GetOrEmpty(presence.Configuration.ID);
         }
     }

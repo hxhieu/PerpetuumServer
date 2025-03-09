@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Perpetuum.Log;
 using Perpetuum.Threading.Process;
 
@@ -26,17 +27,20 @@ namespace Perpetuum.Zones.NpcSystem.Presences
         {
             GlobalServiceManager.PostZonesLoadedAction(() =>
             {
-                foreach (var configuration in _configurationReader.GetAll(_zone.Id))
+                var configurations = _configurationReader.GetAll(_zone.Id);
+                Parallel.ForEach(configurations, configuration =>
                 {
                     var presence = CreatePresence(configuration);
-                    if (presence == null)
+                    if (presence != null)
+                    {
+                        presence.LoadFlocks();
+                        AddPresence(presence);
+                    }
+                    else
                     {
                         Logger.Warning($"Failed to load presence: {configuration.ID}");
-                        continue;
                     }
-                    presence.LoadFlocks();
-                    AddPresence(presence);
-                }
+                });
             });
         }
 

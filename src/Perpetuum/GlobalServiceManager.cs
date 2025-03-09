@@ -41,14 +41,15 @@ namespace Perpetuum
         /// Invoke the provided action, only after all zones loaded
         /// </summary>
         /// <param name="invoke"></param>
-        public static void PostZonesLoadedAction(Action invoke)
+        /// <param name="waitMs"></param>
+        public static void PostZonesLoadedAction(Action invoke, int waitMs = 500)
         {
             // Create an off thread, to check in background
             var offThread = new Thread(() =>
             {
                 while (!ZonesLoaded)
                 {
-                    Thread.Sleep(500);
+                    Thread.Sleep(waitMs);
                 }
                 invoke();
             });

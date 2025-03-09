@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace Perpetuum.Zones.NpcSystem.Flocks
 {
@@ -79,10 +80,10 @@ namespace Perpetuum.Zones.NpcSystem.Flocks
             {
                 var totalToSpawn = Configuration.FlockMemberCount - MembersCount;
 
-                for (var i = 0; i < totalToSpawn; i++)
+                Parallel.ForEach([0..(totalToSpawn - 1)], _ =>
                 {
                     CreateMemberInZone();
-                }
+                });
 
                 Log($"{Configuration.FlockMemberCount} NPCs created");
             });
