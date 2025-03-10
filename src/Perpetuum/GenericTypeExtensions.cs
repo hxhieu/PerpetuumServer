@@ -1,4 +1,4 @@
-﻿using MemoryPack;
+﻿using DeepCloner.Core;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -70,8 +70,8 @@ namespace Perpetuum
         public static T Clone<T>(this T source) where T : class
         {
             if (source is null) return default;
-
-            return MemoryPackSerializer.Deserialize<T>(MemoryPackSerializer.Serialize(source));
+            var cloned = source.DeepClone();
+            return cloned;
         }
     }
 }
