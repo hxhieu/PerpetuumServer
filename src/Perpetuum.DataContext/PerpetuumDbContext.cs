@@ -11,6 +11,9 @@ namespace Perpetuum.DataContext.Context
 
             modelBuilder.Entity<Missiontargetsarchive>()
                 .HasKey(x => new { x.Missionid, x.Characterid, x.Targetid });
+
+            modelBuilder.Entity<Accountonlinetime>()
+                .HasKey(x => new { x.Accountid, x.Loggedin });
         }
     }
 }

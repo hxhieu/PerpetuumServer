@@ -46,5 +46,14 @@ namespace Perpetuum.Accounting
         /// <param name="account">The account to unlock EP.</param>
         /// <param name="character">The character to reset EP.</param>
         void UnlockEpAndReset(Account account, Character character);
+
+        /// <summary>
+        /// Sign out of current session
+        /// </summary>
+        /// <param name="accountId"></param>
+        /// <param name="onlineTime"></param>
+        /// <param name="safeLogout"></param>
+        /// <returns></returns>
+        Account SignOut(int accountId, TimeSpan onlineTime, bool safeLogout);
     }
 }

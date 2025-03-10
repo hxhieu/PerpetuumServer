@@ -12,7 +12,7 @@ namespace Perpetuum.DataContext
         List<T> GetMany(Expression<Func<T, bool>>? predicate = null, TimeSpan? cacheTime = null);
         IQueryable<T> GetManyQuery(Expression<Func<T, bool>>? predicate = null);
         void Add(T entity);
-        void Update(T entity, params Expression<Func<T, object>>[] updatedProperties);
+        void Update(T entity);
         int UpdateBatch(Expression<Func<T, bool>> predicate, Expression<Func<T, T>> updateFactory);
         void Delete(T entity);
         int DeleteBatch(Expression<Func<T, bool>> predicate);
@@ -73,24 +73,10 @@ namespace Perpetuum.DataContext
             _dbSet.Add(entity);
         }
 
-        // Update an entity. If no specific properties are provided, update all columns.
-        public void Update(T entity, params Expression<Func<T, object>>[] updatedProperties)
+        // Update an entity
+        public void Update(T entity)
         {
-            var entry = _context.Entry(entity);
-
-            if (updatedProperties == null || updatedProperties.Length == 0)
-            {
-                // If no specific properties are provided, mark the entire entity as modified
-                entry.State = EntityState.Modified;
-            }
-            else
-            {
-                // If specific properties are provided, only update those fields
-                foreach (var property in updatedProperties)
-                {
-                    entry.Property(property).IsModified = true;
-                }
-            }
+            _dbSet.Update(entity);
         }
 
         // Delete an entity

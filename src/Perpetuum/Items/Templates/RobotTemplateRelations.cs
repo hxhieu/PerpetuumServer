@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using Perpetuum.Data;
+﻿using AutoMapper;
+using Perpetuum.DataContext;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.EntityFramework;
+using System.Collections.Generic;
 
 namespace Perpetuum.Items.Templates
 {
@@ -9,41 +10,39 @@ namespace Perpetuum.Items.Templates
     {
         private readonly IRobotTemplateReader _robotTemplateReader;
         private readonly IEntityDefaultReader _entityDefaultReader;
+        private readonly IMapper _mapper;
+        private readonly IDbRepository<Robottemplaterelation> _robotTemplateRelRepo;
         private readonly Dictionary<int,IRobotTemplateRelation> _relations = new Dictionary<int, IRobotTemplateRelation>();
 
         private RobotTemplate _equippedDefault;
         private RobotTemplate _unequippedDefault;
 
-        public RobotTemplateRelations(IRobotTemplateReader robotTemplateReader,IEntityDefaultReader entityDefaultReader)
+        public RobotTemplateRelations(
+            IRobotTemplateReader robotTemplateReader,
+            IEntityDefaultReader entityDefaultReader,
+            IMapper mapper,
+            IDbRepository<Robottemplaterelation> robotTemplateRelRepo
+        )
         {
             _robotTemplateReader = robotTemplateReader;
             _entityDefaultReader = entityDefaultReader;
+            _mapper = mapper;
+            _robotTemplateRelRepo = robotTemplateRelRepo;
         }
 
         public void Init()
         {
-            var records = Db.Query().CommandText("select * from robottemplaterelation").Execute();
+            var records = _robotTemplateRelRepo.GetMany();
 
             foreach (var record in records)
             {
-                var relation = CreateRobotTemplateRelationFromRecord(record);
+                var relation = _mapper.Map<RobotTemplateRelation>(record);
+                relation.EntityDefault = _entityDefaultReader.Get(record.Definition);
+                relation.Template = _robotTemplateReader.Get(record.Templateid);
                 _relations[relation.EntityDefault.Definition] = relation;
             }
             _equippedDefault = _robotTemplateReader.GetByName("starter_master");
             _unequippedDefault = _robotTemplateReader.GetByName("arkhe_empty");
-        }
-
-        private RobotTemplateRelation CreateRobotTemplateRelationFromRecord(IDataRecord record)
-        {
-            var relation = new RobotTemplateRelation
-            {
-                EntityDefault = _entityDefaultReader.Get(record.GetValue<int>("definition")),
-                Template = _robotTemplateReader.Get(record.GetValue<int>("templateid")),
-                RaceID = record.GetValue<int>("raceid"),
-                missionLevel = record.GetValue<int?>("missionlevel"),
-                missionLevelOverride = record.GetValue<int?>("missionleveloverride")
-            };
-            return relation;
         }
 
         public RobotTemplate EquippedDefault => _equippedDefault;
