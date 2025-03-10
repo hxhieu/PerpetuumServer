@@ -14,6 +14,12 @@ namespace Perpetuum.DataContext.Context
 
             modelBuilder.Entity<Accountonlinetime>()
                 .HasKey(x => new { x.Accountid, x.Loggedin });
+
+            modelBuilder.Entity<Gameglobal>()
+                .HasKey(x => x.Clockoffset);
+
+            modelBuilder.Entity<Corporationleave>()
+                .HasKey(x => new { x.Characterid, x.Leavetime });
         }
     }
 }

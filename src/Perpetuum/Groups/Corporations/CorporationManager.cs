@@ -1,15 +1,16 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 using Perpetuum.Accounting.Characters;
 using Perpetuum.Data;
+using Perpetuum.DataContext;
 using Perpetuum.Log;
 using Perpetuum.Services.Standing;
 using Perpetuum.Threading.Process;
 using Perpetuum.Timers;
 using Perpetuum.Zones.Intrusion;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 
 namespace Perpetuum.Groups.Corporations
 {
@@ -106,19 +107,23 @@ namespace Perpetuum.Groups.Corporations
     public class CorporationManager : ICorporationManager
     {
         private readonly IStandingHandler _standingHandler;
+        private readonly IDbRepository<DataContext.Entities.Corporationleave> _corpLeaveRepo;
         private readonly TimerList _timers = new TimerList();
 
         public CorporationConfiguration Settings { get; }
         public CorporateInvites Invites { get; }
 
-        public CorporationManager(IStandingHandler standingHandler,
-                                  CorporationConfiguration corporationConfiguration,
-                                  CorporateInvites corporateInvites)
+        public CorporationManager(
+            IStandingHandler standingHandler,
+            CorporationConfiguration corporationConfiguration,
+            CorporateInvites corporateInvites,
+            IDbRepository<DataContext.Entities.Corporationleave> corpLeaveRepo
+        )
         {
             _standingHandler = standingHandler;
             Settings = corporationConfiguration;
             Invites = corporateInvites;
-
+            _corpLeaveRepo = corpLeaveRepo;
             _timers.Add(new TimerAction(Invites.InviteCycle, TimeSpan.FromSeconds(3.03), true));
             _timers.Add(new TimerAction(ScheduleCollectRend, TimeSpan.FromHours(1.07))); //not async
             _timers.Add(new TimerAction(FinishLeave, TimeSpan.FromSeconds(7.07), true));
@@ -177,16 +182,14 @@ namespace Perpetuum.Groups.Corporations
             {
                 _leaveProcessWorking = true;
 
-                var records = Db.Query().CommandText("select leavetime,characterid from corporationleave where leavetime<@leavetime")
-                    .SetParameter("@leavetime", DateTime.Now.AddMinutes(_leavePeriodMinutes))
-                    .Execute();
-
-                foreach (var record in records)
+                var entities = _corpLeaveRepo.GetMany(x => x.Leavetime < DateTime.Now.AddMinutes(_leavePeriodMinutes));
+                
+                foreach (var e in entities)
                 {
                     try
                     {
-                        var leaveDate = record.GetValue<DateTime>(0);
-                        var character = Character.Get(record.GetValue<int>(1));
+                        var leaveDate = e.Leavetime;
+                        var character = Character.Get(e.Characterid);
                         if (character == Character.None) 
                             continue;
 
