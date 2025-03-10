@@ -9,8 +9,8 @@ namespace Perpetuum.DataContext
     public interface IDbRepository<T> where T : class
     {
         T? GetOne(Expression<Func<T, bool>> predicate, TimeSpan? cacheTime = null);
-        List<T> GetMany(Expression<Func<T, bool>> predicate, TimeSpan? cacheTime = null);
-        IQueryable<T> GetMany(Expression<Func<T, bool>> predicate);
+        List<T> GetMany(Expression<Func<T, bool>>? predicate = null, TimeSpan? cacheTime = null);
+        IQueryable<T> GetManyQuery(Expression<Func<T, bool>>? predicate = null);
         void Add(T entity);
         void Update(T entity, params Expression<Func<T, object>>[] updatedProperties);
         int UpdateBatch(Expression<Func<T, bool>> predicate, Expression<Func<T, T>> updateFactory);
@@ -53,18 +53,18 @@ namespace Perpetuum.DataContext
         }
 
         // Get many entities matching the predicate
-        public List<T> GetMany(Expression<Func<T, bool>> predicate, TimeSpan? cacheTime)
+        public List<T> GetMany(Expression<Func<T, bool>>? predicate = null, TimeSpan? cacheTime = null)
         {
             var cacheOptions = new MemoryCacheEntryOptions
             {
                 SlidingExpiration = cacheTime?? TimeSpan.FromSeconds(10)
             };
-            return _dbSet.AsNoTracking().Where(predicate).FromCache(cacheOptions).ToList();
+            return _dbSet.AsNoTracking().Where(predicate ?? (_ => true)).FromCache(cacheOptions).ToList();
         }
 
-        public IQueryable<T> GetMany(Expression<Func<T, bool>> predicate)
+        public IQueryable<T> GetManyQuery(Expression<Func<T, bool>>? predicate = null)
         {
-            return _dbSet.AsNoTracking().Where(predicate);
+            return _dbSet.AsNoTracking().Where(predicate ?? (_ => true));
         }
 
         // Add a new entity to the database

@@ -22,20 +22,9 @@ namespace Perpetuum.Services.ExtensionService
 
         public Extension[] RequiredExtensions { get; set; }
 
-        public ExtensionInfo(IDataRecord record)
+        public ExtensionInfo(DataContext.Entities.Extension entity)
         {
-            id = record.GetValue<int>("extensionid");
-            name = record.GetValue<string>("extensionname");
-            category = record.GetValue<int>("category");
-            rank = record.GetValue<int>("rank");
-            learningAttributePrimary = record.GetValue<string>("learningattributeprimary");
-            learningAttributeSecondary = record.GetValue<string>("learningattributesecondary");
-            bonus = record.GetValue<double>("bonus");
-            price = record.GetValue<int>("price");
-            _description = record.GetValue<string>("description");
-            aggregateField = (AggregateField)(record.GetValue<int?>("targetpropertyID") ?? 0);
-            hidden = record.GetValue<bool>("hidden");
-            freezeLimit = record.GetValue<int?>("freezelimit");
+            _description = entity.Description;
         }
 
         public override string ToString()
@@ -43,7 +32,7 @@ namespace Perpetuum.Services.ExtensionService
             return $"name:{name} id:{id}";
         }
 
-        public Dictionary<string,object> ToDictionary()
+        public Dictionary<string, object> ToDictionary()
         {
             return new Dictionary<string, object>
                 {

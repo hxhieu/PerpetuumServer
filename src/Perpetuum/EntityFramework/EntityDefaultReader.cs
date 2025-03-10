@@ -107,7 +107,7 @@ namespace Perpetuum.EntityFramework
 
         private Dictionary<int, DefinitionConfig> LoadDefinitionConfigs()
         {
-            var entities = _definitionConfigRepo.GetMany(_ => true, TimeSpan.FromHours(1)); // Can cache this for very long time?
+            var entities = _definitionConfigRepo.GetMany(cacheTime: TimeSpan.FromHours(1)); // Can cache this for very long time?
             var records = entities.Select(e =>
             {
                 // Private fields

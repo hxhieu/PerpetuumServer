@@ -1,33 +1,34 @@
+using Perpetuum.DataContext;
+using Perpetuum.DataContext.Entities;
+using Perpetuum.GenXY;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using Perpetuum.Data;
-using Perpetuum.GenXY;
 
 namespace Perpetuum.Items.Templates
 {
-    public class RobotTemplateReader : IRobotTemplateReader
+    public class RobotTemplateReader(IDbRepository<Robottemplate> robotTemplateRepo) : IRobotTemplateReader
     {
         public IEnumerable<RobotTemplate> GetAll()
         {
-            return Db.Query().CommandText("select * from robottemplates").Execute().Select(CreateRobotTemplateFromRecord).ToList();
+            return robotTemplateRepo.GetMany().Select(CreateRobotTemplateFromRecord).ToList();
         }
 
         [CanBeNull]
         public RobotTemplate Get(int templateID)
         {
-            var record = Db.Query().CommandText("select * from robottemplates where id = @templateID").SetParameter("@templateID", templateID).ExecuteSingleRow();
+            var record = robotTemplateRepo.GetOne(x => x.Id == templateID);
             if (record == null)
                 return null;
 
             return CreateRobotTemplateFromRecord(record);
         }
 
-        private static RobotTemplate CreateRobotTemplateFromRecord(IDataRecord record)
+        private static RobotTemplate CreateRobotTemplateFromRecord(Robottemplate entity)
         {
-            var id = record.GetValue<int>("id");
-            var name = record.GetValue<string>("name");
-            var description = record.GetValue<string>("description");
+            var id = entity.Id;
+            var name = entity.Name;
+            var description = entity.Description;
             var dictionary = GenxyConverter.Deserialize(description);
             var template = RobotTemplate.CreateFromDictionary(name, dictionary);
             if (template == null)

@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using AutoMapper;
 using Perpetuum.Accounting.Characters;
 using Perpetuum.Data;
+using Perpetuum.DataContext;
 using Perpetuum.EntityFramework;
 
 namespace Perpetuum.Services.ExtensionService
@@ -11,13 +13,27 @@ namespace Perpetuum.Services.ExtensionService
     public class ExtensionReader : IExtensionReader
     {
         private readonly Lazy<IEntityDefaultReader> _entityDefaultReader;
+        private readonly IMapper _mapper;
+        private readonly IDbRepository<DataContext.Entities.Extension> _extRepo;
+        private readonly IDbRepository<DataContext.Entities.Extensionprerequire> _extPrerequireRepo;
+        private readonly IDbRepository<DataContext.Entities.Enablerextension> _enablerExtRepo;
         private ILookup<int, Extension> _enablerExtensions;
         private ImmutableDictionary<int, ExtensionInfo> _extensions;
         private ILookup<int, ExtensionBonus> _robotComponentExtensionBonuses;
 
-        public ExtensionReader(Lazy<IEntityDefaultReader> entityDefaultReader)
+        public ExtensionReader(
+            Lazy<IEntityDefaultReader> entityDefaultReader,
+            IMapper mapper,
+            IDbRepository<DataContext.Entities.Extension> extRepo,
+            IDbRepository<DataContext.Entities.Extensionprerequire> extPrerequireRepo,
+            IDbRepository<DataContext.Entities.Enablerextension> enablerExtRepo
+        )
         {
             _entityDefaultReader = entityDefaultReader;
+            _mapper = mapper;
+            _extRepo = extRepo;
+            _extPrerequireRepo = extPrerequireRepo;
+            _enablerExtRepo = enablerExtRepo;
         }
 
         private ILookup<int, Extension> GetEnablerExtensions()
@@ -26,12 +42,11 @@ namespace Perpetuum.Services.ExtensionService
             {
                 var extensions = GetExtensions();
 
-                _enablerExtensions = Db.Query().CommandText("select * from enablerextensions")
-                    .Execute()
-                    .Select(r => new
+                _enablerExtensions = _enablerExtRepo.GetMany(cacheTime: TimeSpan.FromHours(1))
+                    .Select(e => new
                     {
-                        definition = r.GetValue<int>("definition"),
-                        extension = new Extension(r.GetValue<int>("extensionid"), r.GetValue<int>("extensionlevel"))
+                        definition = e.Definition,
+                        extension = new Extension(e.Extensionid, e.Extensionlevel)
                     })
                     .Where(x => extensions.ContainsKey(x.extension.id))
                     .Distinct()
@@ -50,24 +65,29 @@ namespace Perpetuum.Services.ExtensionService
         {
             if (_extensions == null)
             {
-                var extensions = Db.Query().CommandText("select * from extensions where active = 1")
-                                .Execute()
-                                .Select(r => new ExtensionInfo(r)).ToDictionary(e => e.id);
+                var extensions = _extRepo.GetMany(x => x.Active, TimeSpan.FromHours(1))
+                    .Select(e =>
+                    {
+                        // Private fields
+                        var ext = new ExtensionInfo(e);
+                        // Map the rest
+                        return _mapper.Map(e,ext);
+                    })
+                    .ToDictionary(e => e.id);
 
-                var requiredExtensions = Db.Query().CommandText("select * from extensionprerequire")
-                                                .Execute()
-                                                .Select(r =>
-                                                {
-                                                   var id = r.GetValue<int>("requiredextension");
-                                                   var level = r.GetValue<int>("requiredlevel");
-                                                   return new
-                                                   {
-                                                       extensionID = r.GetValue<int>("extensionid"),
-                                                       requiredExtension = new Extension(id, level)
-                                                   };
-                                                })
-                                                .Where(r => extensions.ContainsKey(r.requiredExtension.id))
-                                                .ToLookup(r => r.extensionID, r => r.requiredExtension);
+                var requiredExtensions = _extPrerequireRepo.GetMany(cacheTime: TimeSpan.FromHours(1))
+                    .Select(e =>
+                    {
+                        var id = e.Requiredextension;
+                        var level = e.Requiredlevel;
+                        return new
+                        {
+                            extensionID = e.Extensionid,
+                            requiredExtension = new Extension(id, level)
+                        };
+                    })
+                    .Where(r => extensions.ContainsKey(r.requiredExtension.id))
+                    .ToLookup(r => r.extensionID, r => r.requiredExtension);
 
                 foreach (var info in extensions.Values)
                 {

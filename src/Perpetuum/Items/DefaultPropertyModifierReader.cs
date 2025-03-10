@@ -1,25 +1,19 @@
-﻿using Perpetuum.Data;
+﻿using Perpetuum.DataContext;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.ExportedTypes;
+using System;
 using System.Linq;
 
 namespace Perpetuum.Items
 {
-    public class DefaultPropertyModifierReader
+    public class DefaultPropertyModifierReader(IDbRepository<Aggregatevalue> aggValueRepo)
     {
         private ILookup<int, ItemPropertyModifier> modifiers;
 
         public void Init()
         {
-            modifiers = Db.Query()
-                .CommandText("select * from aggregatevalues")
-                .Execute()
-                .ToLookup(r => r.GetValue<int>("definition"), r =>
-                {
-                    var field = r.GetValue<AggregateField>("field");
-                    var value = r.GetValue<double>("value");
-
-                    return ItemPropertyModifier.Create(field, value);
-                });
+            modifiers = aggValueRepo.GetMany(cacheTime: TimeSpan.FromHours(1))
+                .ToLookup(e => e.Definition, e => ItemPropertyModifier.Create((AggregateField)e.Field, e.Value));
         }
 
         public ItemPropertyModifier[] GetByDefinition(int definition)
