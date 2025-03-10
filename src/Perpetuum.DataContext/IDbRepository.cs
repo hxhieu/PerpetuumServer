@@ -10,6 +10,7 @@ namespace Perpetuum.DataContext
     {
         T? GetOne(Expression<Func<T, bool>> predicate, TimeSpan? cacheTime = null);
         List<T> GetMany(Expression<Func<T, bool>> predicate, TimeSpan? cacheTime = null);
+        IQueryable<T> GetMany(Expression<Func<T, bool>> predicate);
         void Add(T entity);
         void Update(T entity, params Expression<Func<T, object>>[] updatedProperties);
         int UpdateBatch(Expression<Func<T, bool>> predicate, Expression<Func<T, T>> updateFactory);
@@ -59,6 +60,11 @@ namespace Perpetuum.DataContext
                 SlidingExpiration = cacheTime?? TimeSpan.FromSeconds(10)
             };
             return _dbSet.AsNoTracking().Where(predicate).FromCache(cacheOptions).ToList();
+        }
+
+        public IQueryable<T> GetMany(Expression<Func<T, bool>> predicate)
+        {
+            return _dbSet.AsNoTracking().Where(predicate);
         }
 
         // Add a new entity to the database
