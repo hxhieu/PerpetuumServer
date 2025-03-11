@@ -12,11 +12,13 @@ namespace Perpetuum.DataContext
         public static PerpetuumDbContext CreateDbContext(string connectionString, ILoggerFactory loggerFactory)
         {
             var optionsBuilder = new DbContextOptionsBuilder<PerpetuumDbContext>();
-            optionsBuilder
+            var options = optionsBuilder
                 .UseSqlServer(connectionString)
-                .UseLoggerFactory(loggerFactory);
+                .UseLoggerFactory(loggerFactory)
+                .Options;
 
-            return new PerpetuumDbContext(optionsBuilder.Options);
+            DbRepositoryReadOnlyFactory.UseOptions(options);
+            return new PerpetuumDbContext(options);
         }
 
         protected override void Load(ContainerBuilder builder)

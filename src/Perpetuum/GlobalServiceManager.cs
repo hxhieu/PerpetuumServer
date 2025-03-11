@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Perpetuum.Configuration;
+using Perpetuum.DataContext;
 using Serilog;
 using System;
 using System.Threading;
@@ -32,7 +33,8 @@ namespace Perpetuum
             });
         });
 
-        private static readonly Lazy<DebugSettings> _debugSettings = new (()=>{
+        private static readonly Lazy<DebugSettings> _debugSettings = new (()=>
+        {
             var settings = new DebugSettings();
             Configuration.GetSection("Debugging").Bind(settings);
             return settings;
@@ -45,6 +47,9 @@ namespace Perpetuum
         public static ILoggerFactory LoggerFactory => _loggerFactory.Value;
 
         public static DebugSettings DebugSettings => _debugSettings.Value;
+
+        public static IDbRepositoryReadOnly<T> CreateReadOnlyRepository<T>() where T : class => DbRepositoryReadOnlyFactory.CreateReadOnlyRepository<T>();
+
 
         /// <summary>
         /// Invoke the provided action, only after all zones loaded
