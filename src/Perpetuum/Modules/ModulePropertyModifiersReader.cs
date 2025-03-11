@@ -1,4 +1,5 @@
-using Perpetuum.Data;
+using Perpetuum.DataContext;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.EntityFramework;
 using Perpetuum.ExportedTypes;
 using System.Collections.Generic;
@@ -6,31 +7,24 @@ using System.Linq;
 
 namespace Perpetuum.Modules
 {
-    public class ModulePropertyModifiersReader
+    public class ModulePropertyModifiersReader(IEntityDefaultReader entityDefaultReader, IDbRepository<Modulepropertymodifier> modulePropModRepo)
     {
-        private readonly IEntityDefaultReader _entityDefaultReader;
         private Dictionary<int, ILookup<AggregateField, AggregateField>> _modifiers;
-
-        public ModulePropertyModifiersReader(IEntityDefaultReader entityDefaultReader)
-        {
-            _entityDefaultReader = entityDefaultReader;
-        }
 
         public void Init()
         {
-            var records = Db.Query().CommandText("select categoryflags,basefield,modifierfield from modulepropertymodifiers")
-                .Execute()
-                .Select(r => new
+            var records = modulePropModRepo.GetMany()
+                .Select(e => new
                 {
-                    categoryFlags = r.GetValue<CategoryFlags>("categoryflags"),
-                    baseField = r.GetValue<AggregateField>("basefield"),
-                    modifierField = r.GetValue<AggregateField>("modifierfield")
+                    categoryFlags = (CategoryFlags)e.Categoryflags,
+                    baseField = (AggregateField)e.Basefield,
+                    modifierField = (AggregateField)e.Modifierfield
                 })
                 .Where(r => r.modifierField != AggregateField.undefined)
                 .ToLookup(r => r.categoryFlags);
 
 
-            IEnumerable<EntityDefault> modules = _entityDefaultReader.GetAll().GetByCategoryFlags(CategoryFlags.cf_robot_equipment);
+            IEnumerable<EntityDefault> modules = entityDefaultReader.GetAll().GetByCategoryFlags(CategoryFlags.cf_robot_equipment);
             _modifiers = new Dictionary<int, ILookup<AggregateField, AggregateField>>();
 
             foreach (EntityDefault ed in modules)
