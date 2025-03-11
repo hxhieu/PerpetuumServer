@@ -248,17 +248,5 @@ namespace Perpetuum
             return result;
         }
 
-        public static NameValueCollection ToNameValueCollecion<TK, TV>(this IEnumerable<KeyValuePair<TK, TV>> pairs)
-        {
-            var nv = new NameValueCollection();
-
-            foreach (var kvp in pairs)
-            {
-                nv.Add(kvp.Key.ToString(),kvp.Value.ToString());
-            }
-
-            return nv;
-        }
-
     }
 }

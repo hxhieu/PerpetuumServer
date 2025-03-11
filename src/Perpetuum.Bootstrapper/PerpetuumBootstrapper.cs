@@ -1,8 +1,8 @@
 ﻿using Autofac;
 using Autofac.Builder;
 using Microsoft.Data.SqlClient;
+using Mono.Nat;
 using Newtonsoft.Json;
-using Open.Nat;
 using Perpetuum.Accounting;
 using Perpetuum.Accounting.Characters;
 using Perpetuum.Bootstrapper.Modules;
@@ -67,7 +67,6 @@ using System.Runtime;
 using System.Runtime.Caching;
 using System.Text;
 using System.Threading;
-using LogEvent = Perpetuum.Log.LogEvent;
 
 namespace Perpetuum.Bootstrapper
 {
@@ -211,7 +210,7 @@ namespace Perpetuum.Bootstrapper
                     case HostState.Stopping:
                         {
                             _container.Resolve<IProcessManager>().Stop();
-                            try { NatDiscoverer.ReleaseAll(); } catch { }
+                            try { NatUtility.StopDiscovery(); } catch { }
                             sender.State = HostState.Off;
                             break;
                         }
@@ -243,43 +242,60 @@ namespace Perpetuum.Bootstrapper
                 return false;
             }
 
+            ManualResetEvent discoveryComplete = new(false);
+            bool localSuccess = false;
+            bool disposed = false;
+
             try
             {
-                NatDiscoverer discoverer = new NatDiscoverer();
-                NatDiscoverer.ReleaseAll();
+                NatUtility.DeviceFound += DeviceFound;
+                NatUtility.StartDiscovery();
 
-                NatDevice natDevice = discoverer.DiscoverDeviceAsync().Result;
-                if (natDevice == null)
+                void DeviceFound(object sender, DeviceEventArgs args)
                 {
-                    Logger.Error("[UPNP] NAT device not found!");
-                    return false;
-                }
+                    INatDevice device = args.Device;
+                    Logger.Info($"[UPNP] Device found: {device}");
 
-                void Map(int port)
-                {
-                    System.Threading.Tasks.Task task = natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, port, port)).ContinueWith(t =>
+                    void Map(int port)
                     {
+                        device.CreatePortMap(new Mapping(Protocol.Tcp, port, port));
                         Logger.Info($"[UPNP] Port mapped: {port}");
-                    });
-                    task.Wait();
+                    }
+
+                    Map(config.ListenerPort);
+
+                    foreach (IZone zone in _container.Resolve<IZoneManager>().Zones)
+                    {
+                        Map(zone.Configuration.ListenerPort);
+                    }
+
+                    localSuccess = true;
+                    if (!disposed)
+                    {
+                        discoveryComplete.Set(); // Signal that the device is found
+                    }
                 }
 
-                Map(config.ListenerPort);
+                // Wait for discovery to complete or timeout after 10 seconds
+                discoveryComplete.WaitOne(10000);
+                NatUtility.StopDiscovery();
 
-                foreach (IZone zone in _container.Resolve<IZoneManager>().Zones)
-                {
-                    Map(zone.Configuration.ListenerPort);
-                }
-
-                success = true;
+                success = localSuccess;
             }
             catch (Exception ex)
             {
                 Logger.Exception(ex);
             }
+            finally
+            {
+                disposed = true;
+                discoveryComplete.Dispose(); // Dispose of the event after use
+            }
 
-            return true;
+            return success;
         }
+
+
 
         /// <summary>
         /// this method cleans up every runtime table
