@@ -23,13 +23,13 @@ namespace Perpetuum.DataContext
 
         protected override void Load(ContainerBuilder builder)
         {
-            // EF+ caching policy
-            var options = new MemoryCacheEntryOptions() { SlidingExpiration = TimeSpan.FromMinutes(60)};
-            QueryCacheManager.DefaultMemoryCacheEntryOptions = options;
-
             // Generic repository
             builder.RegisterGeneric(typeof(DbRepository<>))
                 .As(typeof(IDbRepository<>))
+                .InstancePerLifetimeScope();
+
+            builder.RegisterGeneric(typeof(DbRepositoryReadOnly<>))
+                .As(typeof(IDbRepositoryReadOnly<>))
                 .InstancePerLifetimeScope();
         }
     }

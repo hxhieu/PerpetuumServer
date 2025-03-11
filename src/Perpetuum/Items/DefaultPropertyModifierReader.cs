@@ -12,7 +12,7 @@ namespace Perpetuum.Items
 
         public void Init()
         {
-            modifiers = aggValueRepo.GetMany(cacheTime: TimeSpan.FromHours(1))
+            modifiers = aggValueRepo.GetMany(cacheTime: TimeSpan.FromHours(1))  // Can cache for a very long time?
                 .ToLookup(e => e.Definition, e => ItemPropertyModifier.Create((AggregateField)e.Field, e.Value));
         }
 

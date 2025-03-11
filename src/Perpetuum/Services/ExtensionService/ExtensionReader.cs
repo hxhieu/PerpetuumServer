@@ -42,7 +42,7 @@ namespace Perpetuum.Services.ExtensionService
             {
                 var extensions = GetExtensions();
 
-                _enablerExtensions = _enablerExtRepo.GetMany(cacheTime: TimeSpan.FromHours(1))
+                _enablerExtensions = _enablerExtRepo.GetMany(cacheTime: TimeSpan.FromHours(1))  // Can cache for a very long time?
                     .Select(e => new
                     {
                         definition = e.Definition,
@@ -65,7 +65,7 @@ namespace Perpetuum.Services.ExtensionService
         {
             if (_extensions == null)
             {
-                var extensions = _extRepo.GetMany(x => x.Active, TimeSpan.FromHours(1))
+                var extensions = _extRepo.GetMany(x => x.Active, TimeSpan.FromHours(1))  // Can cache for a very long time?
                     .Select(e =>
                     {
                         // Private fields
@@ -75,7 +75,7 @@ namespace Perpetuum.Services.ExtensionService
                     })
                     .ToDictionary(e => e.id);
 
-                var requiredExtensions = _extPrerequireRepo.GetMany(cacheTime: TimeSpan.FromHours(1))
+                var requiredExtensions = _extPrerequireRepo.GetMany(cacheTime: TimeSpan.FromHours(1))  // Can cache for a very long time?
                     .Select(e =>
                     {
                         var id = e.Requiredextension;

@@ -1,51 +1,40 @@
+using AutoMapper;
 using Perpetuum.Data;
-using Perpetuum.EntityFramework;
-using Perpetuum.Zones.NpcSystem.AI.Behaviors;
+using Perpetuum.DataContext;
+using Perpetuum.DataContext.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Perpetuum.Zones.NpcSystem.Flocks
 {
-    public class FlockConfigurationRepository : IFlockConfigurationRepository
+    public class FlockConfigurationRepository(
+        FlockConfigurationBuilder.Factory flockConfigurationBuilderFactory,
+        NpcBossInfoBuilder bossBuilder,
+        IMapper mapper,
+        IDbRepository<Npcflock> flockRepo,
+        IDbRepositoryReadOnly<Npcbossinfo> bossRepo
+    ) : IFlockConfigurationRepository
     {
-        private readonly NpcBossInfoBuilder _bossBuilder;
-        private readonly FlockConfigurationBuilder.Factory _flockConfigurationBuilderFactory;
-        private readonly Dictionary<int, IFlockConfiguration> _flockConfigurations = new Dictionary<int, IFlockConfiguration>();
-
-        public FlockConfigurationRepository(FlockConfigurationBuilder.Factory flockConfigurationBuilderFactory, NpcBossInfoBuilder bossBuilder)
-        {
-            _flockConfigurationBuilderFactory = flockConfigurationBuilderFactory;
-            _bossBuilder = bossBuilder;
-        }
+        private readonly Dictionary<int, IFlockConfiguration> _flockConfigurations = [];
 
         public void LoadAllConfig()
         {
-            var records = Db.Query().CommandText("select * from npcflock").Execute();
+            var flocks = flockRepo.GetMany(x => x.Enabled, TimeSpan.FromHours(1));  // Can cache for a very long time?
+            var bosses = bossRepo.GetMany(cacheTime: TimeSpan.FromHours(1));  // Can cache for a very long time?
 
-            foreach (var r in records)
+            foreach (var r in flocks)
             {
-                var builder = _flockConfigurationBuilderFactory();
+                var builder = flockConfigurationBuilderFactory();
 
                 builder.With(c =>
                 {
-                    c.ID = r.GetValue<int>("id");
-                    c.Name = r.GetValue<string>("name");
-                    c.PresenceID = r.GetValue<int>("presenceid");
-                    c.FlockMemberCount = r.GetValue<int>("flockmembercount");
-                    c.EntityDefault = EntityDefault.Get(r.GetValue<int>("definition"));
-                    c.SpawnOrigin = new Position(r.GetValue<int>("spawnoriginX"), r.GetValue<int>("spawnoriginY"));
-                    c.SpawnRange = new IntRange(r.GetValue<int>("spawnrangeMin"), r.GetValue<int>("spawnrangeMax"));
-                    c.RespawnTime = TimeSpan.FromSeconds(r.GetValue<int>("respawnseconds"));
-                    c.TotalSpawnCount = r.GetValue<int>("totalspawncount");
-                    c.HomeRange = r.GetValue<int>("homerange");
-                    c.Note = r.GetValue<string>("note");
-                    c.RespawnMultiplierLow = r.GetValue<double>("respawnmultiplierlow");
-                    c.IsCallForHelp = r.GetValue<bool>("iscallforhelp");
-                    c.Enabled = r.GetValue<bool>("enabled");
-                    c.BehaviorType = (BehaviorType)r.GetValue<int>("behaviorType");
-                    c.SpecialType = (NpcSpecialType)r.GetValue<int>("npcSpecialType");
-                    c.BossInfo = _bossBuilder.GetBossInfoByFlockID(c.ID, c);
+                    c = mapper.Map(r, c);
+                    var boss = bosses.FirstOrDefault(x => x.Flockid == x.Id);
+                    if (boss != null)
+                    {
+                        c.BossInfo = bossBuilder.CreateBossInfoFromDB(boss);
+                    }
                 });
 
                 var config = builder.Build();
