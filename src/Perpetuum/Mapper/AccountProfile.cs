@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace Perpetuum.Mapper
 {
     internal class AccountProfile : AutoMapper.Profile
@@ -26,11 +28,18 @@ namespace Perpetuum.Mapper
             //TotalOnlineTime = TimeSpan.FromMinutes(record.GetValue<int>("totalminsonline")),
             //Credit = record.GetValue<int>("credit")
 
-            CreateMap<DataContext.Models.Account, Accounting.Account>()
+            CreateMap<DataContext.Entities.Account, Accounting.Account>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.AccountId))
                 .ForMember(dest => dest.AccessLevel, opt => opt.MapFrom(src => (AccessLevel)src.AccLevel))
                 .ForMember(dest => dest.FirstCharacterDate, opt => opt.MapFrom(src => src.Firstcharacter))
-                .ForMember(dest => dest.TotalOnlineTime, opt => opt.MapFrom(src => src.TotalMinsOnline))
+                .ForMember(dest => dest.TotalOnlineTime, opt => opt.MapFrom(src => TimeSpan.FromMinutes(src.TotalMinsOnline)))
+                .ForMember(dest => dest.BanLength, opt => opt.MapFrom(src => TimeSpan.FromMinutes(src.Banlength)))
+                .ReverseMap()
+                .ForMember(dest => dest.AccountId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.AccLevel, opt => opt.MapFrom(src => (int)src.AccessLevel))
+                .ForMember(dest => dest.Firstcharacter, opt => opt.MapFrom(src => src.FirstCharacterDate))
+                .ForMember(dest => dest.TotalMinsOnline, opt => opt.MapFrom(src => src.TotalOnlineTime.TotalMinutes))                
+                .ForMember(dest => dest.Banlength, opt => opt.MapFrom(src => src.BanLength.TotalMinutes))
             ;
         }
     }

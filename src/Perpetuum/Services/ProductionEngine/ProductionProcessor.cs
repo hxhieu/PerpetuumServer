@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Transactions;
+using AutoMapper;
 using Perpetuum.Accounting.Characters;
 using Perpetuum.Containers;
 using Perpetuum.Data;
+using Perpetuum.DataContext;
 using Perpetuum.EntityFramework;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Groups.Corporations;
@@ -21,18 +17,27 @@ using Perpetuum.Services.ProductionEngine.Facilities;
 using Perpetuum.Services.ProductionEngine.ResearchKits;
 using Perpetuum.Timers;
 using Perpetuum.Zones;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Perpetuum.Services.ProductionEngine
 {
-    public class ProductionProcessor
+    public class ProductionProcessor(
+        IProductionDataAccess productionDataAccess,
+        IProductionInProgressRepository pipRepository,
+        ProductionDescription.Factory productionDescFactory,
+        IEntityServices entityServices,
+        InsuranceHelper insuranceHelper,
+        MissionProcessor missionProcessor,
+        IMapper mapper,
+        IDbRepository<DataContext.Entities.Entity> entityRepo
+    )
     {
         private const int BETA_EP_MULTIPLIER = 2;
-        private readonly IProductionDataAccess _productionDataAccess;
-        private readonly IProductionInProgressRepository _pipRepository;
-        private readonly ProductionDescription.Factory _productionDescFactory;
-        private readonly IEntityServices _entityServices;
-        private readonly InsuranceHelper _insuranceHelper;
-        private readonly MissionProcessor _missionProcessor;
 
         //facility cache
         private readonly ConcurrentDictionary<long, ProductionFacility> _facilities = new ConcurrentDictionary<long, ProductionFacility>();
@@ -42,20 +47,6 @@ namespace Perpetuum.Services.ProductionEngine
         private static Dictionary<string, object> _productionDescriptionCache;
 
         private readonly ConcurrentBag<NextRoundProduction> _nextRoundProductions = new ConcurrentBag<NextRoundProduction>();
-
-        public ProductionProcessor(IProductionDataAccess productionDataAccess,
-                                   IProductionInProgressRepository pipRepository,
-                                   ProductionDescription.Factory productionDescFactory,
-                                   IEntityServices entityServices,
-                                   InsuranceHelper insuranceHelper,MissionProcessor missionProcessor)
-        {
-            _productionDataAccess = productionDataAccess;
-            _pipRepository = pipRepository;
-            _productionDescFactory = productionDescFactory;
-            _entityServices = entityServices;
-            _insuranceHelper = insuranceHelper;
-            _missionProcessor = missionProcessor;
-        }
 
         public void InitProcessor()
         {
@@ -69,7 +60,7 @@ namespace Perpetuum.Services.ProductionEngine
             var counter = 0;
             var canceled = 0;
 
-            foreach (var productionInProgress in _pipRepository.GetAll())
+            foreach (var productionInProgress in pipRepository.GetAll())
             {
 #if DEBUG
                 if (!IsFacilityExists(productionInProgress.facilityEID))
@@ -127,7 +118,7 @@ namespace Perpetuum.Services.ProductionEngine
                         continue;
                     }
 
-                    var desc = _productionDescFactory(ed.Definition);
+                    var desc = productionDescFactory(ed.Definition);
                     _productionDescriptions.Add(definition, desc);
                     loaded++;
                 }
@@ -149,11 +140,12 @@ namespace Perpetuum.Services.ProductionEngine
 #else
             var facilityEids = ProductionHelper.LoadAllLiveFacilityEids();
 #endif
-            foreach (var facilityEid in facilityEids)
+            var facilityEntities = entityRepo.GetMany(x => facilityEids.Contains(x.Eid));
+            foreach (var f in facilityEntities)
             {
                 try
                 {
-                    var facility = (ProductionFacility) Entity.Repository.LoadOrThrow(facilityEid);
+                    var facility = (ProductionFacility) Entity.Repository.LoadOrThrow(f);
                     facility.ProductionProcessor = this;
 
                     AddFacilityToCache(facility);
@@ -162,7 +154,7 @@ namespace Perpetuum.Services.ProductionEngine
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("error occured loading the facility " + facilityEid + " " + ex.Message);
+                    Logger.Error("error occured loading the facility " + f.Eid + " " + ex.Message);
                 }
 
             }
@@ -217,7 +209,7 @@ namespace Perpetuum.Services.ProductionEngine
             {
                 Logger.Error("facility not found in endProduction. facility EID:" + productionInProgress.facilityEID);
 
-                _pipRepository.Delete(productionInProgress);
+                pipRepository.Delete(productionInProgress);
                 RemoveFromRunningProductions(productionInProgress);
 
                 Logger.Error("failed endProduction for " + productionInProgress);
@@ -231,13 +223,13 @@ namespace Perpetuum.Services.ProductionEngine
                     var replyDict = facility.EndProduction(productionInProgress, forced);
 
                     //delete from sql
-                    _pipRepository.Delete(productionInProgress);
+                    pipRepository.Delete(productionInProgress);
 
                     productionInProgress.SendProductionEventToCorporationMembersOnCommitted(Commands.ProductionRemoteEnd);
 
                     var ep =CalculateEp(facility, productionInProgress);
 
-                    productionInProgress.character.AddExtensionPointsBoostAndLog( EpForActivityType.Production, ep);
+                    productionInProgress.character.AddExtensionPointsBoostAndLog(EpForActivityType.Production, ep);
 
 
                     if (replyDict != null)
@@ -275,7 +267,7 @@ namespace Perpetuum.Services.ProductionEngine
             }
         }
 
-       
+
         private int CalculateEp(ProductionFacility facility, ProductionInProgress productionInProgress)
         {
             var dockingBase = facility.GetDockingBase();
@@ -283,20 +275,20 @@ namespace Perpetuum.Services.ProductionEngine
             {
                 return 0;
             }
-                
+
             var ep = productionInProgress.TotalProductionTime.TotalHours;
             if (dockingBase.Zone.Configuration.IsBeta)
             {
                 ep *= BETA_EP_MULTIPLIER;
             }
-            
+
             //For <1hr jobs, give EP at a rate that would equate to 1 per hour
             if (ep < 1 && FastRandom.NextDouble() < ep)
             {
                 ep = 1;
             }
 
-            return (int) ep;
+            return (int)ep;
         }
 
         public int GetRunningProductionsCountByFacility(long facilityEid)
@@ -308,7 +300,7 @@ namespace Perpetuum.Services.ProductionEngine
         {
             var counter = 0;
             var replyDict = (from pip in RunningProductions.GetRunningProductionsByFacilityAndCharacter(character, facilityEID)
-                select (object) pip.ToDictionary()).ToDictionary(d => "c" + counter++);
+                             select (object) pip.ToDictionary()).ToDictionary(d => "c" + counter++);
 
             return replyDict;
         }
@@ -492,7 +484,7 @@ namespace Perpetuum.Services.ProductionEngine
             var replyDict = facility.CancelProduction(pip);
 
             //delete from sql
-            _pipRepository.Delete(pip);
+            pipRepository.Delete(pip);
 
             pip.SendProductionEventToCorporationMembersOnCommitted(Commands.ProductionRemoteCancel);
 
@@ -596,7 +588,7 @@ namespace Perpetuum.Services.ProductionEngine
             //robot cargo check 
             sourceItem.GetOrLoadParentEntity().ThrowIfType<RobotInventory>(ErrorCodes.ResearchNotPossibleFromRobotCargo);
 
-            var isPrototypeItem = _productionDataAccess.IsPrototypeDefinition(sourceItem.Definition);
+            var isPrototypeItem = productionDataAccess.IsPrototypeDefinition(sourceItem.Definition);
 
             Logger.Info("item definition: " + sourceItem.ED.Name + " isPrototype:" + isPrototypeItem);
 
@@ -623,9 +615,9 @@ namespace Perpetuum.Services.ProductionEngine
             //only single item
             if (researchKit.Quantity > 1)
             {
-                researchKit = (ResearchKit) researchKit.Unstack(1); //this is the working piece
+                researchKit = (ResearchKit)researchKit.Unstack(1); //this is the working piece
             }
-            
+
             /*
             else
             {
@@ -637,7 +629,7 @@ namespace Perpetuum.Services.ProductionEngine
             {
                 sourceItem = sourceItem.Unstack(sourceItem.ED.Quantity);
             }
-            
+
             /*
             else
             {
@@ -646,16 +638,16 @@ namespace Perpetuum.Services.ProductionEngine
             */
 
             //check item
-            _productionDataAccess.IsItemResearchable(sourceItem.Definition).ThrowIfFalse(ErrorCodes.ItemNotResearchable);
+            productionDataAccess.IsItemResearchable(sourceItem.Definition).ThrowIfFalse(ErrorCodes.ItemNotResearchable);
 
             //check item using the research kit
             researchKit.IsMatchingWithItem(sourceItem).ThrowIfError();
 
             //match research levels
-            var itemLevel = _productionDataAccess.GetResearchLevel(sourceItem.Definition);
+            var itemLevel = productionDataAccess.GetResearchLevel(sourceItem.Definition);
             var researchKitLevel = researchKit.GetResearchLevel();
 
-            _productionDataAccess.ResearchLevels.TryGetValue(sourceItem.Definition, out ItemResearchLevel itemResearchLevel).ThrowIfFalse(ErrorCodes.ItemNotResearchable);
+            productionDataAccess.ResearchLevels.TryGetValue(sourceItem.Definition, out ItemResearchLevel itemResearchLevel).ThrowIfFalse(ErrorCodes.ItemNotResearchable);
 
             //calc time and bonus
             researchLab.CalculateFinalResearchTimeSeconds(character, itemLevel, researchKitLevel, isPrototypeItem, out int researchTimeSeconds, out int levelDifferenceBonusPoints);
@@ -676,9 +668,9 @@ namespace Perpetuum.Services.ProductionEngine
             container.Save();
 
             //add to ram
-            Transaction.Current.OnCommited(()=>AddToRunningProductions(newProduction));
+            Transaction.Current.OnCommited(() => AddToRunningProductions(newProduction));
 
-            newProduction.SendProductionEventToCorporationMembersOnCommitted(Commands.ProductionRemoteStart); 
+            newProduction.SendProductionEventToCorporationMembersOnCommitted(Commands.ProductionRemoteStart);
 
             var replyDict = new Dictionary<string, object>();
 
@@ -812,7 +804,7 @@ namespace Perpetuum.Services.ProductionEngine
             container.Save();
 
             //add to ram
-            Transaction.Current.OnCommited(()=>AddToRunningProductions(newProduction));
+            Transaction.Current.OnCommited(() => AddToRunningProductions(newProduction));
 
             newProduction.SendProductionEventToCorporationMembersOnCommitted(Commands.ProductionRemoteStart);
 
@@ -854,7 +846,7 @@ namespace Perpetuum.Services.ProductionEngine
             bool hasBonus;
             var materialMultiplier = prototyper.CalculateMaterialMultiplier(character, targetDefinition, out hasBonus);
             var materials = ProductionDescription.GetRequiredComponentsInfo(  ProductionInProgressType.prototype, 1, materialMultiplier, productionDescription.Components.ToList());
-            var prototypeDefinition = _productionDataAccess.GetPrototypePair(targetDefinition);
+            var prototypeDefinition = productionDataAccess.GetPrototypePair(targetDefinition);
 
             replyDict = new Dictionary<string, object>
             {
@@ -877,7 +869,7 @@ namespace Perpetuum.Services.ProductionEngine
 
             var item = Item.GetOrThrow(targetEid);
 
-            var insurance = _insuranceHelper.GetInsurance(targetEid);
+            var insurance = insuranceHelper.GetInsurance(targetEid);
 
             if (insurance == null)
                 return ErrorCodes.NoError;
@@ -909,15 +901,15 @@ namespace Perpetuum.Services.ProductionEngine
                 }
             }
 
-            _insuranceHelper.DeleteAndInform(insurance,item.Eid);
+            insuranceHelper.DeleteAndInform(insurance, item.Eid);
             return ErrorCodes.NoError;
         }
 
-        public void EnqueueProductionMissionTarget( MissionTargetType targetType, Character character,int locationId, int? definition = null, int? quantity = null)
+        public void EnqueueProductionMissionTarget(MissionTargetType targetType, Character character, int locationId, int? definition = null, int? quantity = null)
         {
             if (locationId <= 0) return; //gamma or something unknown
-           
-            Logger.Info("++ Enqueue mission target type " + targetType + " characterId:" + character.Id + " definition:" + definition + " quantity:" + quantity );
+
+            Logger.Info("++ Enqueue mission target type " + targetType + " characterId:" + character.Id + " definition:" + definition + " quantity:" + quantity);
 
             var data = new Dictionary<string, object>
                 {
@@ -928,12 +920,12 @@ namespace Perpetuum.Services.ProductionEngine
                 };
 
             if (definition != null)
-                data.Add(k.definition, (int) definition);
+                data.Add(k.definition, (int)definition);
 
             if (quantity != null)
-                data.Add(k.quantity, (int) quantity);
+                data.Add(k.quantity, (int)quantity);
 
-            _missionProcessor.EnqueueMissionTargetAsync(data);
+            missionProcessor.EnqueueMissionTargetAsync(data);
         }
 
         public static void InformProductionEvent(ProductionInProgress productionInProgress, Command command)
@@ -972,7 +964,7 @@ namespace Perpetuum.Services.ProductionEngine
 
         public void AddPBSDockingBase(long baseEid)
         {
-            var facilities = _entityServices.Repository.GetFirstLevelChildren_(baseEid).OfType<ProductionFacility>();
+            var facilities = entityServices.Repository.GetFirstLevelChildrenEntity(baseEid).OfType<ProductionFacility>();
             foreach (var facility in facilities)
             {
                 var ed = facility.ED;
@@ -1004,7 +996,7 @@ namespace Perpetuum.Services.ProductionEngine
             container.Save();
 
             //add to ram
-            Transaction.Current.OnCommited(()=>AddToRunningProductions(newProduction));
+            Transaction.Current.OnCommited(() => AddToRunningProductions(newProduction));
 
             newProduction.SendProductionEventToCorporationMembersOnCommitted(Commands.ProductionRemoteStart);
 
@@ -1051,7 +1043,7 @@ namespace Perpetuum.Services.ProductionEngine
             foreach (var productionInProgress in RunningProductions.Where(pip => pip.character.Equals(character)))
             {
                 Logger.Info("force removing production " + productionInProgress);
-                _pipRepository.Delete(productionInProgress);
+                pipRepository.Delete(productionInProgress);
                 RemoveFromRunningProductions(productionInProgress);
             }
 

@@ -4,15 +4,16 @@ using System.Data;
 using System.Linq;
 using Perpetuum.Accounting.Characters;
 using Perpetuum.Data;
+using Perpetuum.DataContext;
 using Perpetuum.Groups.Corporations;
 
 namespace Perpetuum.Services.Standing
 {
-    public class StandingRepository : IStandingRepository
+    public class StandingRepository(IDbRepository<DataContext.Entities.Standing> standingRepo) : IStandingRepository
     {
         public int DeleteNeutralStandings()
         {
-            return Db.Query().CommandText("delete standings where standing=0").ExecuteNonQuery();
+            return standingRepo.DeleteBatch(x => x.Standing1 == 0);
         }
 
         public void InsertOrUpdate(StandingInfo info)
@@ -32,26 +33,23 @@ namespace Perpetuum.Services.Standing
                 .ExecuteNonQuery();
         }
 
-        private static StandingInfo CreateStandingInfoFromRecord(IDataRecord r)
+        private static StandingInfo CreateStandingInfoFromRecord(DataContext.Entities.Standing e)
         {
-            var source = r.GetValue<long>("source");
-            var target = r.GetValue<long>("target");
-            var standing = r.GetValue<double>("standing");
+            var source = e.Source;
+            var target = e.Target;
+            var standing = e.Standing1;
             return new StandingInfo(source, target, standing);
         }
 
         public List<StandingInfo> GetAll()
         {
-            return Db.Query().CommandText("select [source],[target],[standing] from standings")
-                .Execute()
-                .Select(CreateStandingInfoFromRecord).ToList();
+            return standingRepo.GetMany().Select(CreateStandingInfoFromRecord).ToList();
         }
 
         public List<StandingInfo> GetStandingForCharacter(Character character)
         {
             var allianceEids = DefaultCorporationDataCache.GetMegaCorporationEids().ToArray();
-            var qs = "select * from standings where [source] in (" + allianceEids.ArrayToString() + ") and [target]=@characterEid";
-            return Db.Query().CommandText(qs).SetParameter("@characterEid", character.Eid).Execute().Select(CreateStandingInfoFromRecord).ToList();
+            return standingRepo.GetMany(x => allianceEids.Contains(x.Source) && x.Target == character.Id).Select(CreateStandingInfoFromRecord).ToList();
         }
 
         public List<StandingLogEntry> GetStandingLogs(Character character, DateTimeRange timeRange)

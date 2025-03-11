@@ -9,6 +9,8 @@ using Perpetuum.Zones.NpcSystem.Presences.InterzonePresences;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Drawing;
+using System.Threading.Tasks;
 
 namespace Perpetuum.Zones.NpcSystem.Flocks
 {
@@ -74,14 +76,17 @@ namespace Perpetuum.Zones.NpcSystem.Flocks
 
         public void SpawnAllMembers()
         {
-            var totalToSpawn = Configuration.FlockMemberCount - MembersCount;
-
-            for (var i = 0; i < totalToSpawn; i++)
+            GlobalServiceManager.PostZonesLoadedAction(() =>
             {
-                CreateMemberInZone();
-            }
+                var totalToSpawn = Configuration.FlockMemberCount - MembersCount;
 
-            Log($"{Configuration.FlockMemberCount} NPCs created");
+                Parallel.ForEach([0..(totalToSpawn - 1)], _ =>
+                {
+                    CreateMemberInZone();
+                });
+
+                Log($"{Configuration.FlockMemberCount} NPCs created");
+            });
         }
 
         public virtual void Update(TimeSpan time)
@@ -155,7 +160,7 @@ namespace Perpetuum.Zones.NpcSystem.Flocks
         {
             var spawnRangeMin = Configuration.SpawnRange.Min;
             var spawnRangeMax = Configuration.SpawnRange.Max.Min(HomeRange);
-            var spawnPosition = spawnOrigin.GetRandomPositionInRange2D(spawnRangeMin, spawnRangeMax).Clamp(Presence.ZoneSize);
+            var spawnPosition = spawnOrigin.GetRandomPositionInRange2D(spawnRangeMin, spawnRangeMax).Clamp(Presence.Zone?.Size ?? Size.Empty);
 
             return spawnPosition;
         }

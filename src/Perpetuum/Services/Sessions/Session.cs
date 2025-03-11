@@ -140,7 +140,7 @@ namespace Perpetuum.Services.Sessions
         public event SessionEventHandler Disconnected;
 
         public event SessionEventHandler RsaKeyReceived;
-        
+
         /// <summary>
         /// mitigate account creation spam. now must disconnect before trying to make another account.
         /// </summary>
@@ -255,17 +255,7 @@ namespace Perpetuum.Services.Sessions
 
             DeselectCharacter();
 
-            var account = _accountManager.Repository.Get(AccountId).ThrowIfNull(ErrorCodes.AccountNotFound);
-
-            Db.Query().CommandText("accountonlinetimestop")
-                .SetParameter("@accountId", account.Id)
-                .SetParameter("@safeLogout", SafeLogOut)
-                .ExecuteNonQuery().ThrowIfZero(ErrorCodes.SQLExecutionError);
-
-            account.IsLoggedIn = false;
-            account.TotalOnlineTime += OnlineTime;
-
-            _accountManager.Repository.Update(account);
+            var account = _accountManager.SignOut(AccountId, OnlineTime, SafeLogOut);
 
             Transaction.Current.OnCommited(() =>
             {

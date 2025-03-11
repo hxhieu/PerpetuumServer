@@ -17,7 +17,11 @@ namespace Perpetuum.Log
         [Conditional("DEBUG")]
         public static void DebugInfo(string message)
         {
-            Info(message);
+            Current.Log(new LogEvent
+            {
+                LogType = LogType.None,
+                Message = message
+            });
         }
 
         public static void Info(string message)

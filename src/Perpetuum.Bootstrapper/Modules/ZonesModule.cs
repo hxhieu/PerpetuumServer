@@ -34,9 +34,11 @@ using Perpetuum.Zones.Terrains.Terraforming;
 using Perpetuum.Zones.Training.Reward;
 using Perpetuum.Zones.ZoneEntityRepositories;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace Perpetuum.Bootstrapper.Modules
 {
@@ -50,6 +52,7 @@ namespace Perpetuum.Bootstrapper.Modules
             _ = builder.RegisterType<ZoneDrawStatMap>();
 
             _ = builder.RegisterType<ZoneConfigurationReader>().As<IZoneConfigurationReader>();
+            _ = builder.RegisterType<ZoneEffectReader>().AsSelf().SingleInstance();
 
             _ = builder.Register(c =>
             {
@@ -188,14 +191,21 @@ namespace Perpetuum.Bootstrapper.Modules
             {
                 var zones = e.Context.Resolve<IZoneConfigurationReader>().GetAll();
 #if DEBUG
-                zones = zones.OrderByDescending(x => x.Id).Take(1);
-#endif
-                foreach (ZoneConfiguration c in zones)
+                // Load debug zones from configuration
+                if (GlobalServiceManager.DebugSettings.ZonesToLoad.Length > 0)
                 {
-                    Func<ZoneConfiguration, IZone> zoneFactory = e.Context.Resolve<Func<ZoneConfiguration, IZone>>();
-                    IZone zone = zoneFactory(c);
+                    zones = zones.Where(x => GlobalServiceManager.DebugSettings.ZonesToLoad.Contains(x.Id));
+                }
+#endif
+                var zoneList = new List<IZone>();
+                var zoneFactory = e.Context.Resolve<Func<ZoneConfiguration, IZone>>();
+                var effectHandler = e.Context.Resolve<Func<IZone, EnvironmentalEffectHandler>>();
 
-                    _ = e.Context.Resolve<Func<IZone, EnvironmentalEffectHandler>>().Invoke(zone);
+                // Load zones in parallel to improve the performance
+                Parallel.ForEach(zones, c =>
+                {
+                    IZone zone = zoneFactory(c);
+                    effectHandler.Invoke(zone);
 
                     Logger.Info("------------------");
                     Logger.Info("--");
@@ -203,8 +213,12 @@ namespace Perpetuum.Bootstrapper.Modules
                     Logger.Info("--");
                     Logger.Info("------------------");
 
-                    e.Instance.Zones.Add(zone);
-                }
+                    zoneList.Add(zone);
+                });
+
+                e.Instance.Zones.AddRange(zoneList);
+                GlobalServiceManager.ZonesLoaded = true;
+
             }).SingleInstance();
 
             _ = builder.RegisterType<TagHelper>();

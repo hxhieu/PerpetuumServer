@@ -18,7 +18,8 @@ namespace Perpetuum.Bootstrapper.Modules
             _ = builder.Register<Func<IZone, IZoneEffectHandler>>(x =>
             {
                 IComponentContext ctx = x.Resolve<IComponentContext>();
-                return zone => new ZoneEffectHandler(zone);
+                var zoneEffectReader = ctx.Resolve<ZoneEffectReader>();
+                return zone => new ZoneEffectHandler(zone, zoneEffectReader);
             });
 
             _ = builder.RegisterType<InvulnerableEffect>().Keyed<Effect>(EffectType.effect_invulnerable);

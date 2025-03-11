@@ -1,9 +1,7 @@
-﻿using Perpetuum.Data;
+﻿using Perpetuum.DataContext;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.Services.EventServices;
 using Perpetuum.Services.RiftSystem;
-using Perpetuum.Zones.NpcSystem.Flocks;
-using System.Data;
-using System.Linq;
 
 namespace Perpetuum.Zones.NpcSystem
 {
@@ -12,29 +10,30 @@ namespace Perpetuum.Zones.NpcSystem
         private readonly ICustomRiftConfigReader _customRiftConfigReader;
         private readonly EventListenerService _eventChannel;
 
-        public NpcBossInfoBuilder(ICustomRiftConfigReader customRiftConfigReader, EventListenerService eventChannel)
+        public NpcBossInfoBuilder(ICustomRiftConfigReader customRiftConfigReader, EventListenerService eventChannel, IDbRepository<Npcbossinfo> npcBossInfoRepo)
         {
             _customRiftConfigReader = customRiftConfigReader;
             _eventChannel = eventChannel;
         }
 
-        public NpcBossInfo CreateBossInfoFromDB(IDataRecord record)
+        public NpcBossInfo CreateBossInfoFromDB(Npcbossinfo entity)
         {
-            int id = record.GetValue<int>("id");
-            int flockid = record.GetValue<int>("flockid");
-            double? respawnFactor = record.GetValue<double?>("respawnNoiseFactor");
-            bool lootSplit = record.GetValue<bool>("lootSplitFlag");
-            long? outpostEID = record.GetValue<long?>("outpostEID");
-            int? stabilityPts = record.GetValue<int?>("stabilityPts");
-            bool overrideRelations = record.GetValue<bool>("overrideRelations");
-            string deathMessage = record.GetValue<string>("customDeathMessage");
-            string aggressMessage = record.GetValue<string>("customAggressMessage");
-            int? riftConfigId = record.GetValue<int?>("riftConfigId");
+            int id = entity.Id;
+            int flockid = entity.Flockid;
+            double? respawnFactor = entity.RespawnNoiseFactor;
+            bool lootSplit = entity.LootSplitFlag;
+            long? outpostEID = entity.OutpostEid;
+            int? stabilityPts = entity.StabilityPts;
+            bool overrideRelations = entity.OverrideRelations;
+            string deathMessage = entity.CustomAggressMessage;
+            string aggressMessage = entity.CustomAggressMessage;
+            int? riftConfigId = entity.RiftConfigId;
             CustomRiftConfig riftConfig = _customRiftConfigReader.GetById(riftConfigId ?? -1);
-            bool announce = record.GetValue<bool>("isAnnounced");
-            bool isServerWideAnnouncement = record.GetValueOrDefault<bool>("isServerWideAnnouncement");
-            bool isNoRadioDelay = record.GetValueOrDefault<bool>("isNoRadioDelay");
-            NpcBossInfo info = new NpcBossInfo(
+            bool announce = entity.IsAnnounced;
+            bool isServerWideAnnouncement = entity.IsServerWideAnnouncement??false;
+            bool isNoRadioDelay = entity.IsNoRadioDelay ??false;
+
+            NpcBossInfo info = new(
                 _eventChannel,
                 id,
                 flockid,
@@ -50,29 +49,6 @@ namespace Perpetuum.Zones.NpcSystem
                 isServerWideAnnouncement,
                 isNoRadioDelay
              );
-
-            return info;
-        }
-
-        public NpcBossInfo GetBossInfoByFlockID(int flockid, IFlockConfiguration config)
-        {
-            System.Collections.Generic.IEnumerable<NpcBossInfo> bossInfos = Db.Query()
-                .CommandText(@"SELECT TOP 1 id, flockid, respawnNoiseFactor, lootSplitFlag, outpostEID,
-                    stabilityPts, overrideRelations, customDeathMessage, customAggressMessage, riftConfigId,
-                    isAnnounced, isServerWideAnnouncement, isNoRadioDelay
-                    FROM dbo.npcbossinfo WHERE flockid=@flockid;")
-                .SetParameter("@flockid", flockid)
-                .Execute()
-                .Select(CreateBossInfoFromDB);
-
-            NpcBossInfo info = bossInfos.SingleOrDefault();
-
-            if (info == null)
-            {
-                return null;
-            }
-
-            info.RespawnTime = config.RespawnTime;
 
             return info;
         }

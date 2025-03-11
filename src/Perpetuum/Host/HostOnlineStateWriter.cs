@@ -1,21 +1,18 @@
-using System;
-using Perpetuum.Data;
+using Perpetuum.DataContext;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.Threading.Process;
+using System;
 
 namespace Perpetuum.Host
 {
-    public class HostOnlineStateWriter : Process
+    public class HostOnlineStateWriter(IHostStateService hostStateService, IDbRepository<Gameglobal> gameGlobalRepo) : Process
     {
-        private readonly IHostStateService _hostStateService;
-
-        public HostOnlineStateWriter(IHostStateService hostStateService)
+        private void UpdateHostStateToDb()
         {
-            _hostStateService = hostStateService;
-        }
-
-        private static void UpdateHostStateToDb()
-        {
-            Db.Query().CommandText("update gameglobals set lastonline=@now").SetParameter("@now", DateTime.Now).ExecuteNonQuery();
+            gameGlobalRepo.UpdateBatch(_ => true, x => new Gameglobal
+            {
+                Lastonline = DateTime.Now
+            });
         }
 
         public override void Stop()
@@ -25,7 +22,7 @@ namespace Perpetuum.Host
 
         public override void Update(TimeSpan time)
         {
-            if (_hostStateService.State != HostState.Online)
+            if (hostStateService.State != HostState.Online)
                 return;
 
             UpdateHostStateToDb();

@@ -1,6 +1,6 @@
 using AutoMapper;
 using Perpetuum.Data;
-using Perpetuum.DataContext.Context;
+using Perpetuum.DataContext;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Perpetuum.Accounting
 {
-    public class AccountRepository(IPerpetuumDbContext dbContext, IMapper mapper) : IAccountRepository
+    public class AccountRepository(IDbRepository<DataContext.Entities.Account> repository, IMapper mapper) : IAccountRepository
     {
         public void Insert(Account account)
         {
@@ -28,39 +28,9 @@ namespace Perpetuum.Accounting
 
         public void Update(Account account)
         {
-            int q = Db
-                .Query(@"update accounts set 
-                    email = @email,
-                    password = @password,
-                    accLevel = @accessLevel,
-                    state = @state,
-                    validuntil = @validUntil,
-                    payingcustomer = @payingcustomer,
-                    firstcharacter = @firstcharacter,
-                    isloggedin = @isloggedin,
-                    lastloggedin = @lastloggedin,
-                    totalminsonline = @totalminsonline,
-                    credit = @credit,
-                    bantime = @bantime,
-                    banlength = @banlength,
-                    bannote = @bannote
-                    where accountid = @id")
-                .SetParameter("email", account.Email)
-                .SetParameter("password", account.Password)
-                .SetParameter("accessLevel", (int)account.AccessLevel)
-                .SetParameter("state", account.State)
-                .SetParameter("validUntil", account.ValidUntil)
-                .SetParameter("payingcustomer", account.PayingCustomer)
-                .SetParameter("firstcharacter", account.FirstCharacterDate)
-                .SetParameter("isloggedin", account.IsLoggedIn)
-                .SetParameter("lastloggedin", account.LastLoggedIn)
-                .SetParameter("totalminsonline", (int)account.TotalOnlineTime.TotalMinutes)
-                .SetParameter("credit", account.Credit)
-                .SetParameter("bantime", account.BanTime)
-                .SetParameter("banlength", (int)account.BanLength.TotalSeconds)
-                .SetParameter("bannote", account.BanNote)
-                .SetParameter("id", account.Id)
-                .ExecuteNonQuery().ThrowIfEqual(0, ErrorCodes.SQLUpdateError);
+            var record = mapper.Map<DataContext.Entities.Account>(account);
+            repository.Update(record);
+            repository.SaveChanges();
         }
 
         public AccessLevel GetAccessLevel(int accountId)
@@ -107,12 +77,8 @@ namespace Perpetuum.Accounting
 
         public Account Get(int accountId)
         {
-            IDataRecord record = Db
-                .Query("select * from accounts where accountId = @accountId")
-                .SetParameter("accountId", accountId)
-                .ExecuteSingleRow();
-
-            return CreateAccountFromRecord(record);
+            var record = repository.GetOne(x => x.AccountId == accountId);
+            return record != null ? mapper.Map<Account>(record) : null;
         }
 
         public Account Get(int accountId, string steamId)
@@ -138,7 +104,7 @@ namespace Perpetuum.Accounting
 
         public Account Get(string email, string password)
         {
-            var record = dbContext.Accounts.FirstOrDefault(x => x.Email == email && x.Password== password);
+            var record = repository.GetOne(x => x.Email == email && x.Password== password);
             return record == null ? null : mapper.Map<Account>(record);
         }
 

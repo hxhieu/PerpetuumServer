@@ -37,6 +37,7 @@ using System.Drawing;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Perpetuum.Zones
 {
@@ -158,12 +159,16 @@ namespace Perpetuum.Zones
 
         public void LoadUnits()
         {
-            foreach (KeyValuePair<Unit, Position> kvp in UnitService.GetAll())
+            GlobalServiceManager.PostZonesLoadedAction(() =>
             {
-                Unit unit = kvp.Key;
-                Position position = kvp.Value;
-                unit.AddToZone(this, position);
-            }
+                var units = UnitService.GetAll();
+                Parallel.ForEach(units, kvp =>
+                {
+                    Unit unit = kvp.Key;
+                    Position position = kvp.Value;
+                    unit.AddToZone(this, position);
+                });
+            });
         }
 
         private void UpdateSessions(TimeSpan time)

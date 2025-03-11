@@ -1,18 +1,17 @@
+using AutoMapper;
 using Perpetuum.Data;
+using Perpetuum.DataContext;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Perpetuum.Services.Channels
 {
-    public class ChannelRepository : IChannelRepository
+    public class ChannelRepository(
+        ChannelLoggerFactory channelLoggerFactory,
+        IMapper mapper,
+        IDbRepository<DataContext.Entities.Channel> channelRepo
+    ) : IChannelRepository
     {
-        private readonly ChannelLoggerFactory _channelLoggerFactory;
-
-        public ChannelRepository(ChannelLoggerFactory channelLoggerFactory)
-        {
-            _channelLoggerFactory = channelLoggerFactory;
-        }
-
         public Channel Insert(Channel channel)
         {
             const string cmd = "insert into channels (name,type) values (@name,@type);select id from channels where id = scope_identity()";
@@ -44,18 +43,13 @@ namespace Perpetuum.Services.Channels
 
         public IEnumerable<Channel> GetAll()
         {
-            return Db.Query().CommandText("select * from channels").Execute().Select(record =>
+            return channelRepo.GetMany().Select(e =>
             {
-                int id = record.GetValue<int>("id");
-                ChannelType type = (ChannelType)record.GetValue<int>("type");
-                string name = record.GetValue<string>("name");
-                string topic = record.GetValue<string>("topic");
-                string password = record.GetValue<string>("password");
-                bool isForcedJoin = record.GetValueOrDefault<bool>("isForcedJoin");
-
-                IChannelLogger logger = _channelLoggerFactory(name);
-
-                return new Channel(id, type, name, topic, password, isForcedJoin, logger);
+                var type = (ChannelType)e.Type;
+                var name = e.Name;
+                var logger = channelLoggerFactory(name);
+                var channel = new Channel(type, name, logger);
+                return mapper.Map(e, channel);
             }).ToArray();
         }
     }

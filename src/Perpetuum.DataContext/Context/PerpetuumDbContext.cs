@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Perpetuum.DataContext.Models;
+using Perpetuum.DataContext.Entities;
 
 namespace Perpetuum.DataContext.Context;
 

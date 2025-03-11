@@ -1,20 +1,32 @@
+using AutoMapper;
+using Perpetuum.Data;
+using Perpetuum.DataContext;
+using Perpetuum.Services.ExtensionService;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Perpetuum.Data;
-using Perpetuum.ExportedTypes;
-using Perpetuum.GenXY;
-using Perpetuum.Services.ExtensionService;
 
 namespace Perpetuum.EntityFramework
 {
     public class EntityDefaultReader : IEntityDefaultReader
     {
         private readonly IExtensionReader _extensionReader;
+        private readonly IMapper _mapper;
+        private readonly IDbRepository<DataContext.Entities.Definitionconfig> _definitionConfigRepo;
+        private readonly IDbRepository<DataContext.Entities.Entitydefault> _entityDefaultRepo;
         private Dictionary<int, EntityDefault> _entityDefaults;
 
-        public EntityDefaultReader(IExtensionReader extensionReader)
+        public EntityDefaultReader(
+            IExtensionReader extensionReader,
+            IMapper mapper,
+            IDbRepository<DataContext.Entities.Definitionconfig> definitionConfigRepo,
+            IDbRepository<DataContext.Entities.Entitydefault> entityDefaultRepo
+        )
         {
             _extensionReader = extensionReader;
+            _mapper = mapper;
+            _definitionConfigRepo = definitionConfigRepo;
+            _entityDefaultRepo = entityDefaultRepo;
         }
 
         public void Init()
@@ -29,7 +41,7 @@ namespace Perpetuum.EntityFramework
 
         public EntityDefault Get(int definition)
         {
-            return _entityDefaults.GetOrDefault(definition,EntityDefault.None);
+            return _entityDefaults.GetOrDefault(definition, EntityDefault.None);
         }
 
         public EntityDefault GetByEid(long eid)
@@ -60,37 +72,27 @@ namespace Perpetuum.EntityFramework
 
         private Dictionary<int, EntityDefault> LoadAll()
         {
-            var records = Db.Query().CommandText("select * from entitydefaults where enabled = 1").Execute();
+            var entities = _entityDefaultRepo.GetMany(x => x.Enabled, TimeSpan.FromHours(1)); // Can cache for a very long time?
 
             var definitionConfigs = LoadDefinitionConfigs();
 
             var result = new Dictionary<int, EntityDefault>();
 
-            foreach (var record in records)
+            foreach (var e in entities)
             {
-                var definition = record.GetValue<int>("definition");
+                var definition = e.Definition;
 
-                var tierType = (TierType)(record.GetValue<int?>("tiertype") ?? 0);
-                var tierLevel = record.GetValue<int?>("tierlevel") ?? 0;
-
+                // initial object
                 var entityDefault = new EntityDefault
                 {
-                    Volume = record.GetValue<double>("volume"),
-                    _descriptionToken = record.GetValue<string>("descriptionToken"),
-                    _hidden = record.GetValue<bool>("hidden"),
-                    Definition = definition,
-                    Name = record.GetValue<string>("definitionName"),
-                    Quantity = record.GetValue<int>("quantity"),
-                    AttributeFlags = new EntityAttributeFlags((ulong)record.GetValue<long>("attributeflags")),
-                    CategoryFlags = (CategoryFlags)record.GetValue<long>("categoryflags"),
-                    Mass = record.GetValue<double>("mass"),
-                    Health = record.GetValue<double>("health"),
-                    Purchasable = record.GetValue<bool>("purchasable"),
-                    Options = new EntityDefaultOptions(((GenxyString)record.GetValue<string>("options")).ToDictionary()),
-                    EnablerExtensions = GetEnablerAndRequiredExtensions(definition),
+                    _descriptionToken = e.Descriptiontoken,
+                    _hidden = e.Hidden,
                     Config = definitionConfigs.GetOrDefault(definition, DefinitionConfig.None),
-                    Tier = new TierInfo(tierType, tierLevel)
+                    EnablerExtensions = GetEnablerAndRequiredExtensions(definition)
                 };
+
+                // Map the rest
+                entityDefault = _mapper.Map(e, entityDefault);
 
                 result[definition] = entityDefault;
             }
@@ -98,14 +100,22 @@ namespace Perpetuum.EntityFramework
             return result;
         }
 
-        private Dictionary<Extension,Extension[]> GetEnablerAndRequiredExtensions(int definition)
+        private Dictionary<Extension, Extension[]> GetEnablerAndRequiredExtensions(int definition)
         {
-            return _extensionReader.GetEnablerExtensions(definition).ToDictionary(e => e,e => _extensionReader.GetRequiredExtensions(e.id).ToArray());
+            return _extensionReader.GetEnablerExtensions(definition).ToDictionary(e => e, e => _extensionReader.GetRequiredExtensions(e.id).ToArray());
         }
 
-        private static Dictionary<int, DefinitionConfig> LoadDefinitionConfigs()
+        private Dictionary<int, DefinitionConfig> LoadDefinitionConfigs()
         {
-            return Db.Query().CommandText("select * from definitionconfig").Execute().ToDictionary(r => r.GetValue<int>("definition"), r => new DefinitionConfig(r));
+            var entities = _definitionConfigRepo.GetMany(cacheTime: TimeSpan.FromHours(1)); // Can cache this for very long time?
+            var records = entities.Select(e =>
+            {
+                // Private fields
+                var definitionConfig = new DefinitionConfig(e);
+                // Map the rest
+                return _mapper.Map(e, definitionConfig);
+            });
+            return records.ToDictionary(r => r.definition, r => r);
         }
     }
 }

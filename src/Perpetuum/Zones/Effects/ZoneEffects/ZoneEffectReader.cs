@@ -1,4 +1,5 @@
-﻿using Perpetuum.Data;
+﻿using Perpetuum.DataContext;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Log;
 using System;
@@ -11,14 +12,14 @@ namespace Perpetuum.Zones.Effects.ZoneEffects
     /// <summary>
     /// DB querying object for ZoneEffects
     /// </summary>
-    public static class ZoneEffectReader
+    public class ZoneEffectReader(IDbRepository<Zoneeffect> zoneEffectRepo)
     {
-        private static ZoneEffect CreateZoneEffectFromRecord(IDataRecord record)
+        private ZoneEffect CreateZoneEffectFromRecord(Zoneeffect entity)
         {
             try
             {
-                var zoneId = record.GetValue<int>("zoneid");
-                var effectId = record.GetValue<int>("effectid");
+                var zoneId = entity.Zoneid;
+                var effectId = entity.Effectid;
                 var effectType = EnumHelper.GetEnum<EffectType>(effectId);
                 var config = new ZoneEffect(zoneId, effectType, true); // TODO new bool col for isPlayerOnly
                 return config;
@@ -30,14 +31,9 @@ namespace Perpetuum.Zones.Effects.ZoneEffects
             return null;
         }
 
-        public static IEnumerable<ZoneEffect> GetStaticZoneEffects(IZone zone)
+        public IEnumerable<ZoneEffect> GetStaticZoneEffects(IZone zone)
         {
-            var zoneEffects = Db.Query().CommandText("SELECT zoneid, effectid FROM zoneeffects WHERE zoneid=@zoneId")
-                .SetParameter("@zoneId", zone.Id)
-                .Execute()
-                .Select(CreateZoneEffectFromRecord);
-
-            return zoneEffects.Where(z => z != null);
+            return zoneEffectRepo.GetMany(e => e.Zoneid == zone.Id).Select(CreateZoneEffectFromRecord).Where(x => x != null);
         }
     }
 }

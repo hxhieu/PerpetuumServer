@@ -59,7 +59,7 @@ namespace Perpetuum.Threading.Process
                 {
                     try
                     {
-                        _thread.Abort();
+                        _thread.Interrupt();
                     }
                     catch (Exception ex)
                     {
@@ -107,7 +107,6 @@ namespace Perpetuum.Threading.Process
                 catch (ThreadAbortException)
                 {
                     _isRunning = false;
-                    Thread.ResetAbort();
                     return;
                 }
                 catch (Exception ex)

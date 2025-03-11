@@ -1,21 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Perpetuum.Log;
 using Perpetuum.Threading.Process;
 
 namespace Perpetuum.Zones.NpcSystem.Presences
 {
-    public class PresenceManager : Process,IPresenceManager
+    public class PresenceManager : Process, IPresenceManager
     {
-        public delegate IPresenceManager Factory(IZone zone,PresenceFactory presenceFactory);
+        public delegate IPresenceManager Factory(IZone zone, PresenceFactory presenceFactory);
 
         private readonly IZone _zone;
         private readonly PresenceFactory _presenceFactory;
         private readonly IPresenceConfigurationReader _configurationReader;
         private ImmutableList<Presence> _presences = ImmutableList<Presence>.Empty;
 
-        public PresenceManager(IZone zone,PresenceFactory presenceFactory,IPresenceConfigurationReader configurationReader)
+        public PresenceManager(IZone zone, PresenceFactory presenceFactory, IPresenceConfigurationReader configurationReader)
         {
             _zone = zone;
             _presenceFactory = presenceFactory;
@@ -24,17 +25,23 @@ namespace Perpetuum.Zones.NpcSystem.Presences
 
         public void LoadAll()
         {
-            foreach (var configuration in _configurationReader.GetAll(_zone.Id))
+            GlobalServiceManager.PostZonesLoadedAction(() =>
             {
-                var presence = CreatePresence(configuration);
-                if (presence == null)
+                var configurations = _configurationReader.GetAll(_zone.Id);
+                Parallel.ForEach(configurations, configuration =>
                 {
-                    Logger.Warning($"Failed to load presence: {configuration.ID}");
-                    continue;
-                }
-                presence.LoadFlocks();
-                AddPresence(presence);
-            }
+                    var presence = CreatePresence(configuration);
+                    if (presence != null)
+                    {
+                        presence.LoadFlocks();
+                        AddPresence(presence);
+                    }
+                    else
+                    {
+                        Logger.Warning($"Failed to load presence: {configuration.ID}");
+                    }
+                });
+            });
         }
 
         public IEnumerable<Presence> GetPresences()
@@ -53,7 +60,7 @@ namespace Perpetuum.Zones.NpcSystem.Presences
 
         private Presence CreatePresence(IPresenceConfiguration configuration)
         {
-            return _presenceFactory(_zone,configuration);
+            return _presenceFactory(_zone, configuration);
         }
 
         public void AddPresence(Presence presence)

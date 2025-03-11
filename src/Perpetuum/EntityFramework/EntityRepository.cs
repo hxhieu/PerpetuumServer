@@ -1,23 +1,22 @@
+using AutoMapper;
+using Perpetuum.Data;
+using Perpetuum.DataContext;
+using Perpetuum.ExportedTypes;
+using Perpetuum.GenXY;
+using Perpetuum.Log;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
-using Perpetuum.Data;
-using Perpetuum.ExportedTypes;
-using Perpetuum.GenXY;
-using Perpetuum.Log;
 
 namespace Perpetuum.EntityFramework
 {
-    public class EntityRepository : IEntityRepository
+    public class EntityRepository(
+        IEntityFactory entityFactory,
+        IMapper mapper,
+        IDbRepository<DataContext.Entities.Entity> entityRepo
+    ) : IEntityRepository
     {
-        private readonly IEntityFactory _factory;
-
-        public EntityRepository(IEntityFactory entityFactory)
-        {
-            _factory = entityFactory;
-        }
-
         public void Insert(Entity entity)
         {
             if (entity.dbState != EntityDbState.New)
@@ -75,7 +74,7 @@ namespace Perpetuum.EntityFramework
                 return;
 
             entity.OnDeleteFromDb();
- 
+
             foreach (var child in entity.Children)
             {
                 Delete(child);
@@ -91,20 +90,16 @@ namespace Perpetuum.EntityFramework
             Logger.Info($"Entity deleted. {entity}");
         }
 
-        public Entity Load(long eid)
+        public Entity Load(long eid) => Load(entityRepo.GetOne(x => x.Eid == eid));
+
+        public Entity Load(DataContext.Entities.Entity e)
         {
-            if (eid == 0L)
+            if (e == null || e.Eid == 0L)
                 return null;
 
-            // szokasos betoltes
-            var record = Db.Query().CommandText("select eid,definition, owner, parent, health, ename, quantity, repackaged, dynprop from entities where eid = @eid")
-                .SetParameter("@eid", eid)
-                .ExecuteSingleRow();
-
-            if (record == null)
-                return null;
-
-            var entity = CreateEntityFromRecord(record);
+            var entity = entityFactory.CreateWithRandomEID(e.Definition);
+            entity = mapper.Map(e, entity);
+            entity.DynamicProperties.Items = new GenxyString(e.Dynprop).ToDictionary().ToImmutableDictionary();
             entity.OnLoadFromDb();
             return entity;
         }
@@ -154,7 +149,7 @@ namespace Perpetuum.EntityFramework
         private Entity CreateEntityFromRecord(IDataRecord record)
         {
             var definition = record.GetValue<int>("definition");
-            var entity = _factory.CreateWithRandomEID(definition);
+            var entity = entityFactory.CreateWithRandomEID(definition);
 
             entity.Eid = record.GetValue<long>("eid");
             entity.Owner = record.GetValue<long?>("owner") ?? 0L;
@@ -220,23 +215,16 @@ namespace Perpetuum.EntityFramework
             return child;
         }
 
-        public IEnumerable<Entity> GetFirstLevelChildren_(long rootEid)
+        public IEnumerable<Entity> GetFirstLevelChildrenEntity(long rootEid)
         {
-            return Db.Query().CommandText("select eid from entities where parent = @eid")
-                           .SetParameter("@eid",rootEid)
-                           .Execute()
-                           .Select(r =>
-                            {
-                                var eid = r.GetValue<long>(0);
-                                return Load(eid);
-                            }).ToArray();
+            return entityRepo.GetMany(x => x.Parent == rootEid).Select(Load).ToArray();
         }
 
         public IEnumerable<Entity> GetFirstLevelChildrenByOwner(long parent, long owner)
         {
             return Db.Query().CommandText("select eid from entities where parent = @eid and owner=@owner")
-                .SetParameter("@eid",parent)
-                .SetParameter("@owner",owner)
+                .SetParameter("@eid", parent)
+                .SetParameter("@owner", owner)
                 .Execute()
                 .Select(r =>
                 {

@@ -1,13 +1,15 @@
+using AutoMapper;
+using Microsoft.Data.SqlClient;
+using Perpetuum.Accounting.Characters;
+using Perpetuum.Data;
+using Perpetuum.DataContext;
+using Perpetuum.Log;
+using Perpetuum.Services.EventServices;
+using Perpetuum.Services.ExtensionService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
-using Microsoft.Data.SqlClient;
-using Perpetuum.Accounting.Characters;
-using Perpetuum.Data;
-using Perpetuum.Log;
-using Perpetuum.Services.EventServices;
-using Perpetuum.Services.ExtensionService;
 
 namespace Perpetuum.Accounting
 {
@@ -20,18 +22,28 @@ namespace Perpetuum.Accounting
         private readonly AccountWalletFactory walletFactory;
         private readonly EpForActivityLogger epForActivityLogger;
         private readonly EPBonusEventService epBonusEventService;
+        private readonly IMapper _mapper;
+        private readonly IDbRepository<DataContext.Entities.Account> _accountRepo;
+        private readonly IDbRepository<DataContext.Entities.Accountonlinetime> _accountOnlineTimeRepo;
 
         public AccountManager(IAccountRepository accountRepository,
             AccountTransactionLogger transactionLogger,
             AccountWalletFactory walletFactory,
             EpForActivityLogger epForActivityLogger,
-            EPBonusEventService epBonusEventService)
+            EPBonusEventService epBonusEventService,
+            IMapper mapper,
+            IDbRepository<DataContext.Entities.Account> accountRepo,
+            IDbRepository<DataContext.Entities.Accountonlinetime> accountOnlineTimeRepo
+        )
         {
             Repository = accountRepository;
             this.transactionLogger = transactionLogger;
             this.walletFactory = walletFactory;
             this.epForActivityLogger = epForActivityLogger;
             this.epBonusEventService = epBonusEventService;
+            _mapper = mapper;
+            _accountRepo = accountRepo;
+            _accountOnlineTimeRepo = accountOnlineTimeRepo;
         }
 
         public IAccountRepository Repository { get; }
@@ -574,6 +586,27 @@ namespace Perpetuum.Accounting
         public void UnlockEpAndReset(Account account, Character character)
         {
             throw new NotImplementedException();
+        }
+
+        public Account SignOut(int accountId, TimeSpan onlineTime, bool safeLogout)
+        {
+            // Account flags
+            var account = _accountRepo.GetOne(x => x.AccountId == accountId).ThrowIfNull(ErrorCodes.AccountNotFound);
+            account.IsLoggedIn = false;
+            account.TotalMinsOnline += onlineTime.Minutes;
+            _accountRepo.SaveChanges();
+
+            // Online time
+            _accountOnlineTimeRepo.UpdateBatch(
+                x => x.Loggedout == null && x.Accountid == accountId,
+                x => new DataContext.Entities.Accountonlinetime
+                {
+                    Loggedout = DateTime.Now,
+                    Safelogout = safeLogout
+                }
+            );
+
+            return _mapper.Map<Account>(account);
         }
     }
 }

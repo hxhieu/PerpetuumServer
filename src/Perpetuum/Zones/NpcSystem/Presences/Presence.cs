@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Perpetuum.Zones.NpcSystem.Presences
 {
@@ -128,7 +129,7 @@ namespace Perpetuum.Zones.NpcSystem.Presences
 
         public virtual void Log(string message)
         {
-            Logger.Info($"[Presence] ({ToString()}) - {message}");
+            Logger.DebugInfo($"[Presence] ({ToString()}) - {message}");
         }
 
         protected void ClearFlocks()
@@ -162,16 +163,20 @@ namespace Perpetuum.Zones.NpcSystem.Presences
 
         protected void CreateAndAddFlocks(IEnumerable<IFlockConfiguration> configurations)
         {
-            var builder = _flocks.ToBuilder();
-
-            foreach (var configuration in configurations)
+            GlobalServiceManager.PostZonesLoadedAction(() =>
             {
-                var flock = CreateFlock(configuration);
-                builder.Add(flock);
-                OnFlockAdded(flock);
-            }
+                var builder = _flocks.ToBuilder();
 
-            _flocks = builder.ToImmutable();
+                // Create everything in parallel
+                Parallel.ForEach(configurations, configuration =>
+                {
+                    var flock = CreateFlock(configuration);
+                    builder.Add(flock);
+                    OnFlockAdded(flock);
+                });
+
+                _flocks = builder.ToImmutable();
+            });
         }
 
         protected Flock CreateAndAddFlock(int flockID)

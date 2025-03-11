@@ -1,16 +1,15 @@
 ﻿using Autofac;
 using Autofac.Builder;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
+using Mono.Nat;
 using Newtonsoft.Json;
-using Open.Nat;
 using Perpetuum.Accounting;
 using Perpetuum.Accounting.Characters;
 using Perpetuum.Bootstrapper.Modules;
 using Perpetuum.Common;
 using Perpetuum.Common.Loggers.Transaction;
 using Perpetuum.Data;
-using Perpetuum.DataContext.Context;
+using Perpetuum.DataContext;
 using Perpetuum.Deployers;
 using Perpetuum.EntityFramework;
 using Perpetuum.GenXY;
@@ -68,7 +67,6 @@ using System.Runtime;
 using System.Runtime.Caching;
 using System.Text;
 using System.Threading;
-using LogEvent = Perpetuum.Log.LogEvent;
 
 namespace Perpetuum.Bootstrapper
 {
@@ -135,7 +133,6 @@ namespace Perpetuum.Bootstrapper
             _builder = new ContainerBuilder();
             InitContainer(gameRoot);
             _container = _builder.Build();
-            Logger.Current = _container.Resolve<ILogger<LogEvent>>();
 
             GlobalConfiguration config = _container.Resolve<GlobalConfiguration>();
             _container.Resolve<IHostStateService>().State = HostState.Init;
@@ -213,7 +210,7 @@ namespace Perpetuum.Bootstrapper
                     case HostState.Stopping:
                         {
                             _container.Resolve<IProcessManager>().Stop();
-                            try { NatDiscoverer.ReleaseAll(); } catch { }
+                            try { NatUtility.StopDiscovery(); } catch { }
                             sender.State = HostState.Off;
                             break;
                         }
@@ -245,64 +242,90 @@ namespace Perpetuum.Bootstrapper
                 return false;
             }
 
+            ManualResetEvent discoveryComplete = new(false);
+            bool localSuccess = false;
+            bool disposed = false;
+
             try
             {
-                NatDiscoverer discoverer = new NatDiscoverer();
-                NatDiscoverer.ReleaseAll();
+                NatUtility.DeviceFound += DeviceFound;
+                NatUtility.StartDiscovery();
 
-                NatDevice natDevice = discoverer.DiscoverDeviceAsync().Result;
-                if (natDevice == null)
+                void DeviceFound(object sender, DeviceEventArgs args)
                 {
-                    Logger.Error("[UPNP] NAT device not found!");
-                    return false;
-                }
+                    INatDevice device = args.Device;
+                    Logger.Info($"[UPNP] Device found: {device}");
 
-                void Map(int port)
-                {
-                    System.Threading.Tasks.Task task = natDevice.CreatePortMapAsync(new Mapping(Protocol.Tcp, port, port)).ContinueWith(t =>
+                    void Map(int port)
                     {
+                        device.CreatePortMap(new Mapping(Protocol.Tcp, port, port));
                         Logger.Info($"[UPNP] Port mapped: {port}");
-                    });
-                    task.Wait();
+                    }
+
+                    Map(config.ListenerPort);
+
+                    foreach (IZone zone in _container.Resolve<IZoneManager>().Zones)
+                    {
+                        Map(zone.Configuration.ListenerPort);
+                    }
+
+                    localSuccess = true;
+                    if (!disposed)
+                    {
+                        discoveryComplete.Set(); // Signal that the device is found
+                    }
                 }
 
-                Map(config.ListenerPort);
+                // Wait for discovery to complete or timeout after 10 seconds
+                discoveryComplete.WaitOne(10000);
+                NatUtility.StopDiscovery();
 
-                foreach (IZone zone in _container.Resolve<IZoneManager>().Zones)
-                {
-                    Map(zone.Configuration.ListenerPort);
-                }
-
-                success = true;
+                success = localSuccess;
             }
             catch (Exception ex)
             {
                 Logger.Exception(ex);
             }
+            finally
+            {
+                disposed = true;
+                discoveryComplete.Dispose(); // Dispose of the event after use
+            }
 
-            return true;
+            return success;
         }
+
+
 
         /// <summary>
         /// this method cleans up every runtime table
         /// </summary>
         private static void InitGame(IComponentContext container)
         {
-            //the current host has to clean up things in the onlinehost table, and other runtime tables
-            _ = Db.Query().CommandText("initServer").ExecuteNonQuery();
-
-            GlobalConfiguration globalConfiguration = container.Resolve<GlobalConfiguration>();
-            if (!string.IsNullOrEmpty(globalConfiguration.PersonalConfig))
-            {
-                _ = Db.Query().CommandText(globalConfiguration.PersonalConfig).ExecuteNonQuery();
-                Logger.Info("Personal sp executed:" + globalConfiguration.PersonalConfig);
-            }
-
-            Logger.Info("DB init done.");
+            var hostRepo = container.Resolve<HostRepository>();
+            hostRepo.InitServer();
         }
 
         private void InitContainer(string gameRoot)
         {
+            // IConfiguration
+            _ = _builder.Register(_ =>
+            {
+                return GlobalServiceManager.Configuration;
+            }).SingleInstance();
+
+            _ = _builder.Register(_ =>
+            {
+                return GlobalServiceManager.LoggerFactory;
+            }).SingleInstance();
+
+            // DbContext
+            _ = _builder.Register(c =>
+            {
+                var globalConfig = c.Resolve<GlobalConfiguration>();
+                return DbContextModule.CreateDbContext(globalConfig.ConnectionString, GlobalServiceManager.LoggerFactory);
+            }).InstancePerLifetimeScope();
+
             _builder.RegisterModule(new CommandsModule());
             _builder.RegisterModule(new RequestHandlersModule());
             _builder.RegisterModule(new ZoneRequestHandlersModule());
@@ -322,21 +345,7 @@ namespace Perpetuum.Bootstrapper
             _builder.RegisterModule(new ZonesModule());
             _builder.RegisterModule(new PbsModule());
             _builder.RegisterModule(new AutoMapperModule());
-
-            // DbContext
-            _ = _builder.Register<IPerpetuumDbContext>(c =>
-            {
-                var globalConfig = c.Resolve<GlobalConfiguration>();
-                var optionsBuilder = new DbContextOptionsBuilder<PerpetuumDbContext>();
-                optionsBuilder.UseSqlServer(globalConfig.ConnectionString);
-                return new PerpetuumDbContext(optionsBuilder.Options);
-            }).InstancePerLifetimeScope();
-
-            // IConfiguration
-            _ = _builder.Register(_ =>
-            {
-                return ConfigurationManager.Load();
-            }).SingleInstance();
+            _builder.RegisterModule(new DbContextModule());
 
             _ = _builder.Register<Func<string, ObjectCache>>(x =>
             {
@@ -464,6 +473,8 @@ namespace Perpetuum.Bootstrapper
                 GlobalConfiguration cfg = x.Resolve<GlobalConfiguration>();
                 return new SteamManager(cfg.SteamAppID, cfg.SteamKey);
             }).As<ISteamManager>();
+
+            _ = _builder.RegisterType<HostRepository>().AsSelf().SingleInstance();
         }
 
         private void InitRelayManager()

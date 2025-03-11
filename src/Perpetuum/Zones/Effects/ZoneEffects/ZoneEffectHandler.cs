@@ -12,18 +12,20 @@ namespace Perpetuum.Zones.Effects.ZoneEffects
     public class ZoneEffectHandler : IZoneEffectHandler
     {
         private readonly IZone _zone;
+        private readonly ZoneEffectReader _zoneEffectReader;
         private readonly ConcurrentDictionary<ZoneEffect, byte> _effects;
 
-        public ZoneEffectHandler(IZone zone)
+        public ZoneEffectHandler(IZone zone, ZoneEffectReader zoneEffectReader)
         {
             _zone = zone;
+            _zoneEffectReader = zoneEffectReader;
             _effects = new ConcurrentDictionary<ZoneEffect, byte>();
             InitCollection();
         }
 
         private void InitCollection()
         {
-            foreach (var zoneEffect in ZoneEffectReader.GetStaticZoneEffects(_zone))
+            foreach (var zoneEffect in _zoneEffectReader.GetStaticZoneEffects(_zone))
             {
                 _effects.Add(zoneEffect, byte.MinValue);
             }

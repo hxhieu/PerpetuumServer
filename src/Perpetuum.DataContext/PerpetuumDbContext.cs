@@ -1,0 +1,25 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Perpetuum.DataContext.Entities;
+
+namespace Perpetuum.DataContext.Context
+{
+    public partial class PerpetuumDbContext
+    {
+        partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
+        {
+            // Custom or missing PKs
+
+            modelBuilder.Entity<Missiontargetsarchive>()
+                .HasKey(x => new { x.Missionid, x.Characterid, x.Targetid });
+
+            modelBuilder.Entity<Accountonlinetime>()
+                .HasKey(x => new { x.Accountid, x.Loggedin });
+
+            modelBuilder.Entity<Gameglobal>()
+                .HasKey(x => x.Clockoffset);
+
+            modelBuilder.Entity<Corporationleave>()
+                .HasKey(x => new { x.Characterid, x.Leavetime });
+        }
+    }
+}
