@@ -49,8 +49,7 @@ namespace Perpetuum.Services.Standing
         public List<StandingInfo> GetStandingForCharacter(Character character)
         {
             var allianceEids = DefaultCorporationDataCache.GetMegaCorporationEids().ToArray();
-            var qs = "select * from standings where [source] in (" + allianceEids.ArrayToString() + ") and [target]=@characterEid";
-            return Db.Query().CommandText(qs).SetParameter("@characterEid", character.Eid).Execute().Select(CreateStandingInfoFromRecord).ToList();
+            return standingRepo.GetMany(x => allianceEids.Contains(x.Source) && x.Target == character.Id).Select(CreateStandingInfoFromRecord).ToList();
         }
 
         public List<StandingLogEntry> GetStandingLogs(Character character, DateTimeRange timeRange)

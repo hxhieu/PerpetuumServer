@@ -1,9 +1,11 @@
-﻿using Perpetuum.Data;
+﻿using AutoMapper;
+using Perpetuum.DataContext;
 using Perpetuum.EntityFramework;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Zones.Terrains.Materials.Plants;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace Perpetuum.Zones
 {
@@ -12,65 +14,26 @@ namespace Perpetuum.Zones
         IEnumerable<ZoneConfiguration> GetAll();
     }
 
-    public class ZoneConfigurationReader : IZoneConfigurationReader
+    public class ZoneConfigurationReader(
+        GlobalConfiguration globalConfiguration,
+        PlantRuleLoader plantRuleLoader,
+        IMapper mapper,
+        IDbRepository<DataContext.Entities.Zone> zoneRepo
+    ) : IZoneConfigurationReader
     {
-        private readonly GlobalConfiguration _globalConfiguration;
-        private readonly PlantRuleLoader _plantRuleLoader;
-
-        public ZoneConfigurationReader(GlobalConfiguration globalConfiguration, PlantRuleLoader plantRuleLoader)
-        {
-            _globalConfiguration = globalConfiguration;
-            _plantRuleLoader = plantRuleLoader;
-        }
-
         public IEnumerable<ZoneConfiguration> GetAll()
         {
-            List<System.Data.IDataRecord> records = Db.Query().CommandText("select * from zones where enabled = 1").Execute();
+            int port = globalConfiguration.ListenerPort + 1;
 
-            List<ZoneConfiguration> result = new List<ZoneConfiguration>();
-
-            int port = _globalConfiguration.ListenerPort + 1;
-
-
-
-            foreach (System.Data.IDataRecord record in records)
+            var result = zoneRepo.GetMany(x => x.Enabled).Select(e =>
             {
-                int x = record.GetValue<int>("x");
-                int y = record.GetValue<int>("y");
-                int w = record.GetValue<int>("width");
-                int h = record.GetValue<int>("height");
-                int id = record.GetValue<int>("id");
+                var config = mapper.Map<ZoneConfiguration>(e);
+                config.ListenerPort = port++;
+                config.MaxPlayers = 10000;
+                config.PlantRules = plantRuleLoader.LoadPlantRulesWithOverrides(config.plantRuleSetId);
 
-                ZoneConfiguration config = new ZoneConfiguration
-                {
-                    Id = id,
-                    WorldPosition = new Point(x, y),
-                    Size = new Size(w, h),
-                    Name = record.GetValue<string>("name"),
-                    Fertility = record.GetValue<int>("fertility"),
-                    PluginName = record.GetValue<string>("zoneplugin"),
-                    //ListenerAddress = "127.0.0.1",
-                    ListenerPort = port++,
-                    NpcSpawnId = record.GetValue<int?>("spawnid") ?? 0,
-                    Protected = record.GetValue<bool>("protected"),
-                    Terraformable = record.GetValue<bool>("terraformable"),
-                    RaceId = record.GetValue<int>("raceid"),
-                    plantRuleSetId = record.GetValue<int>("plantruleset"),
-                    Type = (ZoneType)record.GetValue<int>("zonetype"),
-                    SparkCost = record.GetValue<int>("sparkcost"),
-                    MaxPlayers = 10000,
-                    MaxDockingBase = record.GetValue<int>("maxdockingbase"),
-                    PlantAltitudeScale = record.GetValue<double>("plantaltitudescale"),
-                    Note = record.GetValue<string>("note"),
-
-                    TimeLimitMinutes = record.GetValue<int?>("timeLimitMinutes"),
-                    PBSTechLimit = record.GetValue<int?>("pbsTechLimit") ?? 0,
-                    PlantsGrowthTimerOverrideMin = record.GetValue<int?>("PlantsGrowthTimerOverrideMin"),
-                };
-
-                config.PlantRules = _plantRuleLoader.LoadPlantRulesWithOverrides(config.plantRuleSetId);
-                result.Add(config);
-            }
+                return config;
+            });
 
             return result;
         }
