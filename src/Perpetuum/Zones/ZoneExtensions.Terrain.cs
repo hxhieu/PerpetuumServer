@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using Perpetuum.DataContext;
+using Perpetuum.DataContext.Entities;
+using Perpetuum.Zones.Terrains;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using Perpetuum.Data;
-using Perpetuum.Zones.Terrains;
 
 namespace Perpetuum.Zones
 {
@@ -10,12 +11,9 @@ namespace Perpetuum.Zones
     {
         public const double MIN_SLOPE = 4.0;
 
-        public static IEnumerable<Position> GetPassablePositionFromDb(this IZone zone)
+        public static IEnumerable<Position> GetPassablePositionFromDb(this IZone zone, IDbRepository<Passablemappoint> passableRepo)
         {
-            return Db.Query().CommandText("select x,y from passablemappoints where zoneid=@zoneID")
-                           .SetParameter("@zoneID", zone.Id)
-                           .Execute()
-                           .Select(r => new Position(r.GetValue<int>(0), r.GetValue<int>(1))).ToList();
+            return passableRepo.GetMany(x => x.Zoneid == zone.Id).Select(x => new Position(x.X, x.Y));
         }
 
         public static bool IsWalkableForNpc(this IZone zone,Point position, double slope = MIN_SLOPE)

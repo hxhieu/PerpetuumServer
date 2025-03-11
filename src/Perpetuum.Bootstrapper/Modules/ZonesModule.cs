@@ -52,6 +52,7 @@ namespace Perpetuum.Bootstrapper.Modules
             _ = builder.RegisterType<ZoneDrawStatMap>();
 
             _ = builder.RegisterType<ZoneConfigurationReader>().As<IZoneConfigurationReader>();
+            _ = builder.RegisterType<ZoneEffectReader>().AsSelf().SingleInstance();
 
             _ = builder.Register(c =>
             {

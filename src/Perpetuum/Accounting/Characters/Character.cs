@@ -563,12 +563,9 @@ namespace Perpetuum.Accounting.Characters
         [UsedImplicitly]
         public static Character GetByNick(string nick)
         {
-            int id = Db.Query()
-                .CommandText("select characterid from characters where nick = @nick")
-                .SetParameter("@nick", nick)
-                .ExecuteScalar<int>();
-
-            return Get(id);
+            var repo = GlobalServiceManager.CreateReadOnlyRepository<DataContext.Entities.Character>();
+            var character = repo.GetOne(x => x.Nick == nick, TimeSpan.FromMinutes(10));
+            return Get(character.CharacterId);
         }
 
         #endregion

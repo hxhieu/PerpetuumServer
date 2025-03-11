@@ -1,4 +1,6 @@
 ﻿using Autofac;
+using Perpetuum.DataContext;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.Services.EventServices;
 using Perpetuum.Services.EventServices.EventProcessors.NpcSpawnEventHandlers;
 using Perpetuum.Threading.Process;
@@ -84,6 +86,7 @@ namespace Perpetuum.Bootstrapper.Modules
             _ = builder.Register<TerrainFactory>(x =>
             {
                 IComponentContext ctx = x.Resolve<IComponentContext>();
+                var passableRepo = ctx.Resolve<IDbRepository<Passablemappoint>>();
                 return zone =>
                 {
                     Terrain terrain = ctx.Resolve<Terrain>();
@@ -121,7 +124,7 @@ namespace Perpetuum.Bootstrapper.Modules
 
                     if (!zone.Configuration.Terraformable)
                     {
-                        PassableMapBuilder b = new PassableMapBuilder(terrain.Blocks, terrain.Slope, zone.GetPassablePositionFromDb());
+                        PassableMapBuilder b = new PassableMapBuilder(terrain.Blocks, terrain.Slope, zone.GetPassablePositionFromDb(passableRepo));
                         terrain.Passable = b.Build();
                     }
 
