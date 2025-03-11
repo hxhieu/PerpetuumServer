@@ -8,6 +8,12 @@ namespace Perpetuum.EntityFramework
             return repository.Load(eid).ThrowIfNull(ErrorCodes.EntityNotFound);
         }
 
+        [NotNull]
+        public static Entity LoadOrThrow(this IEntityRepository repository, DataContext.Entities.Entity entity)
+        {
+            return repository.Load(entity).ThrowIfNull(ErrorCodes.EntityNotFound);
+        }
+
         public static void DeleteTree(this IEntityRepository repository,long eid)
         {
             var entity = repository.LoadTree(eid, null).ThrowIfNull(ErrorCodes.EntityNotFound);

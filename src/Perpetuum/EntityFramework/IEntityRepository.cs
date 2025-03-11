@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using Perpetuum.ExportedTypes;
+using System.Collections.Generic;
 
 namespace Perpetuum.EntityFramework
 {
@@ -10,6 +10,7 @@ namespace Perpetuum.EntityFramework
         void Delete(Entity entity);
 
         Entity Load(long eid);
+        Entity Load(DataContext.Entities.Entity entity);
         List<Entity> LoadByOwner(long rootEid, long? ownerEid);
 
         Entity LoadTree(long rootEid, long? ownerEid);
@@ -23,6 +24,6 @@ namespace Perpetuum.EntityFramework
 
         Entity GetChildByDefinition(Entity parent, int childDefinition);
 
-        IEnumerable<Entity> GetFirstLevelChildren_(long eid);
+        IEnumerable<Entity> GetFirstLevelChildrenEntity(long eid);
     }
 }

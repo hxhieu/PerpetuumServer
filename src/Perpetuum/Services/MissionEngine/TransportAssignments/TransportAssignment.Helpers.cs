@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Transactions;
-using Perpetuum.Accounting.Characters;
+﻿using Perpetuum.Accounting.Characters;
 using Perpetuum.Containers;
 using Perpetuum.Containers.SystemContainers;
 using Perpetuum.Data;
@@ -13,6 +7,12 @@ using Perpetuum.ExportedTypes;
 using Perpetuum.Groups.Corporations;
 using Perpetuum.Log;
 using Perpetuum.Units.DockingBases;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Perpetuum.Services.MissionEngine.TransportAssignments
 {
@@ -126,7 +126,7 @@ namespace Perpetuum.Services.MissionEngine.TransportAssignments
         private static long GetOrCreateTransportStorage(long baseEid)
         {
             var tsEd = EntityServices.Defaults.GetByName(DefinitionNames.TRANSPORT_STORAGE);
-            var storage = EntityServices.Repository.GetFirstLevelChildren_(baseEid).OfType<DefaultSystemContainer>().FirstOrDefault(e => e.ED == tsEd);
+            var storage = EntityServices.Repository.GetFirstLevelChildrenEntity(baseEid).OfType<DefaultSystemContainer>().FirstOrDefault(e => e.ED == tsEd);
             if (storage != null)
             {
                 Logger.Info($"transport storage was found on base: {baseEid} storageEid:{storage.Eid}");
