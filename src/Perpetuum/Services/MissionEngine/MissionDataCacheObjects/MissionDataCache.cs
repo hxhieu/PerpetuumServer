@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading;
 using Perpetuum.Data;
 using Perpetuum.EntityFramework;
 using Perpetuum.Items;
@@ -15,6 +10,11 @@ using Perpetuum.Services.MissionEngine.MissionTargets;
 using Perpetuum.Units;
 using Perpetuum.Zones;
 using Perpetuum.Zones.Artifacts;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Threading;
 
 namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
 {
@@ -104,33 +104,84 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
             InitMissionResolveInfos();
             InitMissionConstants();
 
-            _missionLocations = Database.CreateCache<int, MissionLocation>("missionlocations", "id", MissionLocation.FromRecord);
+            _missionLocations = Database.CreateCache<int, MissionLocation, DataContext.Entities.Missionlocation>(
+                x => x.Id,
+                MissionLocation.FromRecord
+            );
 
-            _targets = Database.CreateCache<int, MissionTarget, DataContext.Entities.Missiontarget>(x => x.Id, MissionTargetFactory.GenerateMissionTargetFromConfigRecord, MissionTarget.Filter);
+            _targets = Database.CreateCache<int, MissionTarget, DataContext.Entities.Missiontarget>(
+                x => x.Id,
+                MissionTargetFactory.GenerateMissionTargetFromConfigRecord,
+                MissionTarget.Filter
+            );
 
-            _requiredExtensions = Database.CreateLookupCache<int, Extension>("missionrequiredextensions", "missionid", r => new Extension(r.GetValue<int>(k.extensionID.ToLower()), r.GetValue<int>(k.extensionLevel.ToLower())), FilterRequiredExtensions);
+            _requiredExtensions = Database.CreateLookupCache<int, Extension, DataContext.Entities.Missionrequiredextension>(
+                x => x.Missionid,
+                x => new Extension(x.Extensionid, x.Extensionlevel),
+                FilterRequiredExtensions
+            );
 
-            _startItems = Database.CreateLookupCache<int, ItemInfo>("missionstartitem", "missionid", r => new ItemInfo(r.GetValue<int>(k.definition), r.GetValue<int>(k.quantity)), FilterStartItems);
+            _startItems = Database.CreateLookupCache<int, ItemInfo, DataContext.Entities.Missionstartitem>(
+                x => x.Missionid,
+                x => new ItemInfo(x.Definition, x.Quantity),
+                FilterStartItems
+            );
 
-            _requiredMissions = Database.CreateLookupCache<int, int>("missionrequiredmissions", "mission", r => r.GetValue<int>(k.requiredMission.ToLower()));
+            _requiredMissions = Database.CreateLookupCache<int, int, DataContext.Entities.Missionrequiredmission>(
+                x => x.Mission,
+                x => x.Requiredmission
+            );
 
-            _agentToMissions = Database.CreateLookupCache<int, int>("missiontoagent", "agentid", r => r.GetValue<int>("missionid"));
+            _agentToMissions = Database.CreateLookupCache<int, int, DataContext.Entities.Missiontoagent>(
+                x => x.Agentid,
+                x => x.Missionid
+            );
 
-            _requiredStandings = Database.CreateLookupCache<int, MissionStandingRequirement>("missionrequiredstanding", "missionid", r => new MissionStandingRequirement(r));
+            _requiredStandings = Database.CreateLookupCache<int, MissionStandingRequirement, DataContext.Entities.Missionrequiredstanding>(
+                x => x.Missionid,
+                x => new MissionStandingRequirement(x)
+            );
 
-            _missions = Database.CreateCache<int, Mission>("missions", "id", Mission.GenerateMissionFromRecord, Mission.Filter);
+            _missions = Database.CreateCache<int, Mission, DataContext.Entities.Mission>(
+                x => x.Id,
+                Mission.GenerateMissionFromRecord,
+                Mission.Filter
+            );
 
-            _rewards = Database.CreateLookupCache<int, MissionReward>("missionrewards", "missionid", MissionReward.FromRecord);
+            _rewards = Database.CreateLookupCache<int, MissionReward, DataContext.Entities.Missionreward>(
+                x => x.Missionid,
+                MissionReward.FromRecord
+            );
 
-            _agents = Database.CreateCache<int, MissionAgent>("missionagents", "id", MissionAgent.FromRecord);
-            _issuers = Database.CreateCache<int, MissionIssuer>("missionissuer", "id", r => new MissionIssuer(r));
-            _standingChange = Database.CreateLookupCache<int, MissionStandingChange>("missionstandingchange", "missionid", MissionStandingChange.FromRecord);
+            _agents = Database.CreateCache<int, MissionAgent, DataContext.Entities.Missionagent>(
+                x => x.Id,
+                MissionAgent.FromRecord
+            );
 
-            _mineralDefinitionToAmountPerCycle = Database.CreateCache<int, int>("minerals", "definition", r => r.GetValue<int>("amount"));
+            _issuers = Database.CreateCache<int, MissionIssuer, DataContext.Entities.Missionissuer>(
+                x => x.Id,
+                x => new MissionIssuer(x)
+            );
 
-            _rewardByType = Database.CreateCache<MissionTargetType, int>("missiontargettypes", "id", r => r.GetValue<int>("reward"));
+            _standingChange = Database.CreateLookupCache<int, MissionStandingChange, DataContext.Entities.Missionstandingchange>(
+                x => x.Missionid,
+                MissionStandingChange.FromRecord
+            );
 
-            _levelToGrind = Database.CreateCache<int, int>("missiongrind", "missionlevel", r => r.GetValue<int>("amount"));
+            _mineralDefinitionToAmountPerCycle = Database.CreateCache<int, int, DataContext.Entities.Mineral>(
+                x => x.Definition,
+                x => x.Amount
+            );
+
+            _rewardByType = Database.CreateCache<MissionTargetType, int, DataContext.Entities.Missiontargettype>(
+                x => (MissionTargetType)x.Id,
+                x => x.Reward
+            );
+
+            _levelToGrind = Database.CreateCache<int, int, DataContext.Entities.Missiongrind>(
+                x => x.Missionlevel,
+                x => x.Amount
+            );
 
             _targetSeletionValidator = new Lazy<TargetSelectionValidator>(() => TargetSelectionValidator.CreateValidator(zoneManager));
 
@@ -206,25 +257,25 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
 
 
 
-        private bool FilterRequiredExtensions(IDataRecord record)
+        private bool FilterRequiredExtensions(DataContext.Entities.Missionrequiredextension entity)
         {
-            var extensionId = record.GetValue<int>(k.extensionID.ToLower());
+            var extensionId = entity.Extensionid;
             if (!extensionReader.GetExtensions().ContainsKey(extensionId))
             {
-                Logger.Error("consistency error in mission required extensions! ID:" + record.GetValue<int>(k.ID.ToLower()));
+                Logger.Error("consistency error in mission required extensions! ID:" + entity.Id);
                 return false;
             }
             return true;
         }
 
-        private bool FilterStartItems(IDataRecord record)
+        private bool FilterStartItems(DataContext.Entities.Missionstartitem entity)
         {
-            var definition = record.GetValue<int>(k.definition);
-            var quantity = record.GetValue<int>(k.quantity);
+            var definition = entity.Definition;
+            var quantity = entity.Quantity;
 
             if (!entityDefaultReader.Exists(definition) || quantity <= 0)
             {
-                Logger.Error("consistency error in mission start items. ID:" + record.GetValue<int>(k.ID.ToLower()));
+                Logger.Error("consistency error in mission start items. ID:" + entity.Id);
                 return false;
             }
 

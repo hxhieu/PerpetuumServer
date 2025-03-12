@@ -1,6 +1,7 @@
-using System.Linq;
 using Perpetuum.Data;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.ExportedTypes;
+using System.Linq;
 
 namespace Perpetuum.Items
 {
@@ -10,12 +11,15 @@ namespace Perpetuum.Items
 
         static DefaultItemPropertyModifiers()
         {
-            _defaultProperties = Database.CreateLookupCache<int,ItemPropertyModifier>("aggregatevalues", "definition", r =>
-            {
-                var field = r.GetValue<AggregateField>("field");
-                var value = r.GetValue<double>("value");
-                return ItemPropertyModifier.Create(field,value);
-            });
+            _defaultProperties = Database.CreateLookupCache<int, ItemPropertyModifier, Aggregatevalue>(
+                x => x.Definition,
+                x =>
+                {
+                    var field = (AggregateField)x.Field;
+                    var value = x.Value;
+                    return ItemPropertyModifier.Create(field, value);
+                }
+            );
         }
 
         public static ItemPropertyModifier[] GetPropertyModifiers(int definition)

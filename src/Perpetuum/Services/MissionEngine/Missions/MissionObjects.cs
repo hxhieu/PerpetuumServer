@@ -1,9 +1,7 @@
+using Perpetuum.Accounting.Characters;
+using Perpetuum.Items;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using Perpetuum.Accounting.Characters;
-using Perpetuum.Data;
-using Perpetuum.Items;
 
 namespace Perpetuum.Services.MissionEngine.Missions
 {
@@ -12,12 +10,12 @@ namespace Perpetuum.Services.MissionEngine.Missions
         public readonly long allianceEid;
         public readonly double change;
 
-        public static  MissionStandingChange FromRecord(IDataRecord record)
+        public static MissionStandingChange FromRecord(DataContext.Entities.Missionstandingchange entity)
         {
-            var allianceEid = record.GetValue<long>(k.allianceEID.ToLower());
-            var change = record.GetValue<double>(k.change);
+            var allianceEid = entity.Allianceeid ?? 0;
+            var change = entity.Change;
 
-            return new MissionStandingChange(allianceEid,change);
+            return new MissionStandingChange(allianceEid, change);
 
         }
 
@@ -56,13 +54,13 @@ namespace Perpetuum.Services.MissionEngine.Missions
         }
 
 
-        public static MissionReward FromRecord(IDataRecord record)
+        public static MissionReward FromRecord(DataContext.Entities.Missionreward entity)
         {
-            var definition = record.GetValue<int>(k.definition);
-            var quantity = record.GetValue<int>(k.quantity);
-            var probability = record.GetValue<int>(k.probability);
+            var definition = entity.Definition;
+            var quantity = entity.Quantity;
+            var probability = entity.Probability;
 
-            return new MissionReward(definition,quantity,probability);
+            return new MissionReward(definition, quantity, probability);
         }
 
         public Dictionary<string, object> ToDictionary()
@@ -82,10 +80,10 @@ namespace Perpetuum.Services.MissionEngine.Missions
         public readonly long corporationEid;
         public readonly long allianceEid;
 
-        public MissionIssuer(IDataRecord record)
+        public MissionIssuer(DataContext.Entities.Missionissuer record)
         {
-            corporationEid = record.GetValue<long>(k.corporationEID.ToLower());
-            allianceEid = record.GetValue<long>(k.allianceEID.ToLower());
+            corporationEid = record.Corporationeid ?? 0;
+            allianceEid = record.Allianceeid ?? 0;
         }
     }
 
@@ -96,11 +94,11 @@ namespace Perpetuum.Services.MissionEngine.Missions
         private readonly bool _standingAbove;
         private readonly double _standingThreshold;
 
-        public MissionStandingRequirement(IDataRecord record)
+        public MissionStandingRequirement(DataContext.Entities.Missionrequiredstanding entity)
         {
-            _corporationEid = record.GetValue<long>(k.corporationEID.ToLower());
-            _standingAbove = record.GetValue<bool>(k.standingAbove.ToLower());
-            _standingThreshold = record.GetValue<double>(k.standingThreshold.ToLower());
+            _corporationEid = entity.Corporationeid ?? 0;
+            _standingAbove = entity.Standingabove;
+            _standingThreshold = entity.Standingthreshold;
         }
 
         public Dictionary<string, object> ToDictionary()

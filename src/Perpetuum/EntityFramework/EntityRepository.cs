@@ -90,7 +90,10 @@ namespace Perpetuum.EntityFramework
             Logger.Info($"Entity deleted. {entity}");
         }
 
-        public Entity Load(long eid) => Load(entityRepo.GetOne(x => x.Eid == eid));
+        public Entity Load(long eid)
+        {
+            return Load(entityRepo.GetOne(x => x.Eid == eid));
+        }
 
         public Entity Load(DataContext.Entities.Entity e)
         {

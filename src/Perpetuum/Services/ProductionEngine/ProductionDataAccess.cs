@@ -1,11 +1,11 @@
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 using Perpetuum.Data;
 using Perpetuum.EntityFramework;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Log;
 using Perpetuum.Services.ProductionEngine.CalibrationPrograms;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 
 namespace Perpetuum.Services.ProductionEngine
 {
@@ -40,12 +40,16 @@ namespace Perpetuum.Services.ProductionEngine
                 return level;
             }, ItemResearchLevelFilter);
 
-            _productionComponents = Database.CreateLookupCache<int, ProductionComponent>("components", k.definition, r =>
-            {
-                var ed = _entityDefaultReader.Get(r.GetValue<int>(k.componentDefinition.ToLower()));
-                var amount = r.GetValue<int>(k.componentAmount.ToLower());
-                return new ProductionComponent(ed, amount);
-            }, r => _entityDefaultReader.Exists(r.GetValue<int>(k.definition)));
+            _productionComponents = Database.CreateLookupCache<int, ProductionComponent, DataContext.Entities.Component>(
+                x => x.Definition,
+                x =>
+                {
+                    var ed = _entityDefaultReader.Get(x.Componentdefinition);
+                    var amount = x.Componentamount;
+                    return new ProductionComponent(ed, amount);
+                },
+                x => _entityDefaultReader.Exists(x.Definition)
+            );
 
             _productionDurations = Database.CreateCache<CategoryFlags, double>("productionduration", k.category, "durationmodifier");
             _calibrationDefaults = Database.CreateCache<int, CalibrationDefault>("calibrationdefaults", k.definition, r => new CalibrationDefault(r));

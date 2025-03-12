@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Perpetuum.Groups.Alliances;
+using Perpetuum.Services.MissionEngine.MissionDataCacheObjects;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using Perpetuum.Data;
-using Perpetuum.Groups.Alliances;
-using Perpetuum.Services.MissionEngine.MissionDataCacheObjects;
 
 namespace Perpetuum.Services.MissionEngine.Missions
 {
@@ -17,11 +16,11 @@ namespace Perpetuum.Services.MissionEngine.Missions
             _missionDataCache = missionDataCache;
         }
 
-       // sqlbol kiszedni AgentEid,BaseEid
+        // sqlbol kiszedni AgentEid,BaseEid
 
         public readonly int id;
         private readonly string _name;
-       
+
 
         private readonly Lazy<List<Mission>> _myMissions;
 
@@ -42,18 +41,18 @@ namespace Perpetuum.Services.MissionEngine.Missions
             get { return MyMissions.Where(m => m.behaviourType == MissionBehaviourType.Config && m.listable); }
         }
 
-        
+
         public override string ToString()
         {
             return string.Format("mission agent. id: " + id + " " + _name + " owner:" + OwnerAlliance.Name);
         }
 
 
-        public static MissionAgent FromRecord(IDataRecord record)
+        public static MissionAgent FromRecord(DataContext.Entities.Missionagent record)
         {
-            var id = record.GetValue<int>(k.ID.ToLower());
-            var name = record.GetValue<string>(k.agentName.ToLower());
-            var ownerEid = record.GetValue<long>("owner");
+            var id = record.Id;
+            var name = record.Agentname;
+            var ownerEid = record.Owner ?? 0;
 
             var agent = new MissionAgent(id, name)
             {
@@ -67,7 +66,7 @@ namespace Perpetuum.Services.MissionEngine.Missions
         {
             this.id = id;
             _name = name;
-            _myMissions = new Lazy<List<Mission>>(CollectMyMissions); 
+            _myMissions = new Lazy<List<Mission>>(CollectMyMissions);
         }
 
         public Dictionary<string, object> ToDictionary()
@@ -78,7 +77,7 @@ namespace Perpetuum.Services.MissionEngine.Missions
                 {k.name, _name},
             };
         }
-        
+
 
         private List<Mission> CollectMyMissions()
         {
@@ -105,9 +104,9 @@ namespace Perpetuum.Services.MissionEngine.Missions
 
         public IEnumerable<Mission> GetConfigMissionsByCategoryAndLevel(MissionCategory missionCategory, int missionLevel)
         {
-            return MyConfigMissions.Where(m => m.missionCategory == missionCategory && m.MissionLevel == missionLevel );
+            return MyConfigMissions.Where(m => m.missionCategory == missionCategory && m.MissionLevel == missionLevel);
         }
 
-      
+
     }
 }

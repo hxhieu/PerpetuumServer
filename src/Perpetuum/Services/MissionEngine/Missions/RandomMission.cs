@@ -1,13 +1,12 @@
-﻿using System;
-using System.Data;
+﻿using Perpetuum.Log;
+using System;
 using System.Linq;
-using Perpetuum.Log;
 
 namespace Perpetuum.Services.MissionEngine.Missions
 {
     public class RandomMission : Mission
     {
-        public RandomMission(IDataRecord record) : base(record) { }
+        public RandomMission(DataContext.Entities.Mission record) : base(record) { }
 
         public override void AcceptVisitor(MissionVisitor visitor)
         {
@@ -53,7 +52,7 @@ namespace Perpetuum.Services.MissionEngine.Missions
             return Targets.Any(t => t.id == index);
         }
 
-        protected override void LoadIssuer(IDataRecord record)
+        protected override void LoadIssuer(DataContext.Entities.Mission record)
         {
             //skip issuer load, a random mission has no fixed issuer
         }

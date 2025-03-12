@@ -1,24 +1,27 @@
-using System.Drawing;
-using System.Linq;
 using Perpetuum.Data;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Log;
 using Perpetuum.Players;
 using Perpetuum.Zones.Artifacts.Repositories;
 using Perpetuum.Zones.Terrains;
+using System.Drawing;
+using System.Linq;
 
 namespace Perpetuum.Zones.Artifacts.Generators
 {
     public class PersistentArtifactGenerator : IArtifactGenerator
     {
         private const int MAX_ARTIFACTS_ON_ZONE = 10;
-        private static readonly ILookup<int, ArtifactSpawnRate> _artifactSpawnRates = Database.CreateLookupCache<int, ArtifactSpawnRate>("artifactspawninfo", "zoneid", r => new ArtifactSpawnRate(r.GetValue<ArtifactType>("artifacttype"), r.GetValue<double>("rate")), null);
+        private static readonly ILookup<int, ArtifactSpawnRate> _artifactSpawnRates = Database.CreateLookupCache<int, ArtifactSpawnRate, DataContext.Entities.Artifactspawninfo>(
+            x => x.Zoneid,
+            x => new ArtifactSpawnRate((ArtifactType)x.Artifacttype, x.Rate)
+        );
 
         private readonly IZone _zone;
         private readonly IArtifactRepository _artifactRepository;
         private readonly Player _player;
 
-        public PersistentArtifactGenerator(IZone zone,IArtifactRepository artifactRepository,Player player)
+        public PersistentArtifactGenerator(IZone zone, IArtifactRepository artifactRepository, Player player)
         {
             _zone = zone;
             _artifactRepository = artifactRepository;
@@ -27,7 +30,7 @@ namespace Perpetuum.Zones.Artifacts.Generators
 
         public void GenerateArtifacts()
         {
-            if (!HasArtifacts()) 
+            if (!HasArtifacts())
                 return;
 
             var artifactsCount = _artifactRepository.GetArtifacts().Count(a => a.Info.isPersistent && a.Character == _player.Character);

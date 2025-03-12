@@ -13,14 +13,15 @@ namespace Perpetuum.Data
 
     public class DbQuery
     {
-        public static void LogCaller()
+        public static void LogCaller(int maxDepth = 5)
         {
             var stackTrace = new StackTrace(1); // Ignore itself
             var frames = stackTrace.GetFrames();
             var stackString = "";
-
+            var depth = 0;
             foreach (var frame in frames)
             {
+                depth++;
                 var method = frame.GetMethod();
                 if (method.DeclaringType?.Namespace.StartsWith("Perpetuum") ?? false)
                 {
@@ -32,6 +33,8 @@ namespace Perpetuum.Data
                     stackString = stackString.Trim(' ', ',');
                     stackString += "), ";
                 }
+                if (depth >= maxDepth)
+                    break;
             }
 
             stackString = stackString.Trim(' ', ',');

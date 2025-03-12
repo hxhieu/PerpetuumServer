@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using Perpetuum.Accounting.Characters;
+﻿using Perpetuum.Accounting.Characters;
 using Perpetuum.Data;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Items;
@@ -10,6 +6,10 @@ using Perpetuum.Log;
 using Perpetuum.Services.MissionEngine.MissionDataCacheObjects;
 using Perpetuum.Services.MissionEngine.MissionTargets;
 using Perpetuum.Services.Standing;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 
 namespace Perpetuum.Services.MissionEngine.Missions
 {
@@ -56,29 +56,29 @@ namespace Perpetuum.Services.MissionEngine.Missions
             return info;
         }
 
-        protected Mission(IDataRecord record)
+        protected Mission(DataContext.Entities.Mission entity)
         {
-            id = record.GetValue<int>(k.ID.ToLower());
-            _missionIdOnSuccess = record.GetValue<int?>(k.missionIDOnSuccess.ToLower());
-            isUnique = record.GetValue<bool>(k.isUnique.ToLower());
-            _periodMinutes = record.GetValue<int?>(k.periodMinutes.ToLower());
-            _missionLevel = record.GetValue<int?>(k.missionLevel.ToLower());
-            title = record.GetValue<string>(k.title);
-            _description = record.GetValue<string>(k.description);
-            _missionType = record.GetValue<int>(k.missionType.ToLower());
-            durationMinutes = record.GetValue<int>(k.durationMinutes.ToLower());
-            _successMessage = record.GetValue<string>(k.successMessage.ToLower());
-            failMessage = record.GetValue<string>(k.failMessage.ToLower());
-            listable = record.GetValue<bool>(k.listable);
-            rewardFee = record.GetValue<double>(k.rewardFee.ToLower());
-            _locationId = record.GetValue<int?>("locationid");
-            behaviourType = (MissionBehaviourType) record.GetValue<int>("behaviourtype");
-            _difficultyReward = record.GetValue<int?>("difficultyreward");
-            _difficultymultiplier = record.GetValue<double?>("difficultymultiplier");
+            id = entity.Id;
+            _missionIdOnSuccess = entity.Missionidonsuccess;
+            isUnique = entity.Isunique;
+            _periodMinutes = entity.Periodminutes;
+            _missionLevel = entity.Missionlevel;
+            title = entity.Title;
+            _description = entity.Description;
+            _missionType = entity.Missiontype;
+            durationMinutes = entity.Durationminutes;
+            _successMessage = entity.Successmessage;
+            failMessage = entity.Failmessage;
+            listable = entity.Listable;
+            rewardFee = entity.Rewardfee;
+            _locationId = entity.Locationid;
+            behaviourType = (MissionBehaviourType)entity.Behaviourtype;
+            _difficultyReward = entity.Difficultyreward;
+            _difficultymultiplier = entity.Difficultymultiplier;
 
             missionCategory = MissionDataCache.GetMissionCategoryByType(_missionType);
 
-            InitIssuer(record);
+            InitIssuer(entity);
 
             _myTargets = new Lazy<List<MissionTarget>>(CollectMyTargets);
             _myDictionary = new Lazy<Dictionary<string, object>>(GenerateMyDictionary);
@@ -91,18 +91,18 @@ namespace Perpetuum.Services.MissionEngine.Missions
             _missionDataCache = missionDataCache;
         }
 
-        private void InitIssuer(IDataRecord record)
+        private void InitIssuer(DataContext.Entities.Mission record)
         {
             LoadIssuer(record);
         }
-        
+
         /// <summary>
         /// Config missions load their issuer from the cached issuers
         /// </summary>
         /// <param name="record"></param>
-        protected virtual void LoadIssuer(IDataRecord record)
+        protected virtual void LoadIssuer(DataContext.Entities.Mission record)
         {
-            var issuerId = record.GetValue<int>(k.issuerID.ToLower());
+            var issuerId = record.Issuerid ?? 0;
 
             MissionIssuer missionIssuer;
             if (!_missionDataCache.GetIssuerById(issuerId, out missionIssuer))
@@ -124,8 +124,8 @@ namespace Perpetuum.Services.MissionEngine.Missions
         {
             get { return _difficultymultiplier ?? 1; }
         }
-        
-       
+
+
         public bool ValidDifficultyRewardSet
         {
             get { return _difficultyReward != null && _difficultyReward > 0; }
@@ -172,7 +172,7 @@ namespace Perpetuum.Services.MissionEngine.Missions
             return _myDictionary.Value;
         }
 
-      
+
         private Dictionary<string, object> GenerateMyDictionary()
         {
             return new Dictionary<string, object>
@@ -220,7 +220,7 @@ namespace Perpetuum.Services.MissionEngine.Missions
         }
 
 
-        
+
 
         //mission extension requirements
         public IEnumerable<Extension> RequiredExtensions
@@ -249,13 +249,13 @@ namespace Perpetuum.Services.MissionEngine.Missions
         }
 
 
-        public static bool Filter(IDataRecord record)
+        public static bool Filter(DataContext.Entities.Mission record)
         {
             var mission = GenerateMissionFromRecord(record);
 
             if (!mission.CheckConsistency())
             {
-                Logger.Error("consistency error in mission! ID: " + record.GetValue<int>(k.ID.ToLower()));
+                Logger.Error("consistency error in mission! ID: " + record.Id);
                 return false;
             }
 
@@ -323,7 +323,7 @@ namespace Perpetuum.Services.MissionEngine.Missions
         /// <param name="character"></param>
         /// <param name="standingHandler"></param>
         /// <returns></returns>
-        public bool MatchStandingToLevel(Character character,IStandingHandler standingHandler)
+        public bool MatchStandingToLevel(Character character, IStandingHandler standingHandler)
         {
             var standing = standingHandler.GetStanding(issuerAllianceEid, character.Eid);
             return standing >= MissionLevel;
@@ -373,9 +373,9 @@ namespace Perpetuum.Services.MissionEngine.Missions
             return list;
         }
 
-        public static Mission GenerateMissionFromRecord(IDataRecord record)
+        public static Mission GenerateMissionFromRecord(DataContext.Entities.Mission record)
         {
-            var behaviour = (MissionBehaviourType) record.GetValue<int>("behaviourtype");
+            var behaviour = (MissionBehaviourType) record.Behaviourtype;
 
             switch (behaviour)
             {
@@ -397,9 +397,9 @@ namespace Perpetuum.Services.MissionEngine.Missions
         }
 
 
-        public Dictionary<string,object> GetSlimInfo()
+        public Dictionary<string, object> GetSlimInfo()
         {
-            return new Dictionary<string, object> {{k.ID, id}, {k.title, title}, {k.type, _missionType}};
+            return new Dictionary<string, object> { { k.ID, id }, { k.title, title }, { k.type, _missionType } };
 
         }
     }

@@ -61,15 +61,15 @@ namespace Perpetuum.Services.MissionEngine.MissionStructures
             return result;
         }
 
-        public static MissionLocation FromRecord(IDataRecord record)
+        public static MissionLocation FromRecord(DataContext.Entities.Missionlocation entity)
         {
-            int id = record.GetValue<int>("id");
-            int agentId = record.GetValue<int>("agentid");
-            long locationEid = record.GetValue<long>("locationeid");
-            int zoneId = record.GetValue<int>("zoneid");
-            double x = record.GetValue<double>("x");
-            double y = record.GetValue<double>("y");
-            int maxMissionLevel = record.GetValue<int>("maxmissionlevel");
+            int id = entity.Id;
+            int agentId = entity.Agentid;
+            long locationEid = entity.Locationeid;
+            int zoneId = entity.Zoneid;
+            double x = entity.X;
+            double y = entity.Y;
+            int maxMissionLevel = entity.Maxmissionlevel;
 
             MissionLocation location = new MissionLocation(id, maxMissionLevel)
             {

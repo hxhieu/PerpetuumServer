@@ -1,6 +1,4 @@
-﻿using System.Data;
-using Perpetuum.Builders;
-using Perpetuum.Data;
+﻿using Perpetuum.Builders;
 using Perpetuum.Services.Looting;
 
 namespace Perpetuum.Zones.Artifacts
@@ -29,12 +27,12 @@ namespace Perpetuum.Zones.Artifacts
 
         private bool Packed { get; set; }
 
-        public ArtifactLoot(IDataRecord record)
+        public ArtifactLoot(DataContext.Entities.Artifactloot entity)
         {
-            Definition = record.GetValue<int>("definition");
-            Quantity = new IntRange(record.GetValue<int>("minquantity"),record.GetValue<int>("maxquantity"));
-            Chance = record.GetValue<double>("chance");
-            Packed = record.GetValue<bool>("packed");
+            Definition = entity.Definition;
+            Quantity = new IntRange(entity.Minquantity, entity.Maxquantity);
+            Chance = entity.Chance;
+            Packed = entity.Packed;
         }
     }
 }

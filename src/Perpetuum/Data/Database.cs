@@ -39,12 +39,17 @@ namespace Perpetuum.Data
             return new LazyDictionary<TKey, TValue>(() => LoadEntityToDictionary(keySelector, valueFactory, selector, keyFactory));
         }
 
-        public static ILookup<TKey, TValue> CreateLookupCache<TKey, TValue>(string table, string columnKey, Func<IDataRecord, TValue> valueFactory, Func<IDataRecord, bool> selector = null)
+        public static ILookup<TKey, TValue> CreateLookupCache<TKey, TValue, TEntity>(
+            Func<TEntity, TKey> keySelector,
+            Func<TEntity, TValue> valueFactory,
+            Func<TEntity, bool> selector = null
+        )  where TEntity : class
         {
             return new LazyLookup<TKey, TValue>(() =>
             {
-                var records = Db.Query().CommandText("select * from " + table).Execute();
-                return records.Where(r => selector == null || selector(r)).ToLookup(r => r.GetValue<TKey>(columnKey), valueFactory);
+                var repo = GlobalServiceManager.CreateReadOnlyRepository<TEntity>();
+                var entities = repo.GetMany();
+                return entities.Where(e => selector == null || selector(e)).ToLookup(e => keySelector(e), valueFactory);
             });
         }
 

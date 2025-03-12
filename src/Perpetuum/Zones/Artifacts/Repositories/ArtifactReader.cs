@@ -1,10 +1,10 @@
+using Perpetuum.Accounting.Characters;
+using Perpetuum.Data;
+using Perpetuum.ExportedTypes;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using Perpetuum.Accounting.Characters;
-using Perpetuum.Data;
-using Perpetuum.ExportedTypes;
 
 namespace Perpetuum.Zones.Artifacts.Repositories
 {
@@ -13,7 +13,10 @@ namespace Perpetuum.Zones.Artifacts.Repositories
 
         public abstract IEnumerable<Artifact> GetArtifacts();
 
-        private static readonly ILookup<ArtifactType, ArtifactLoot> _artifactLoots = Database.CreateLookupCache<ArtifactType, ArtifactLoot>("artifactloot", "artifacttype", r => new ArtifactLoot(r));
+        private static readonly ILookup<ArtifactType, ArtifactLoot> _artifactLoots = Database.CreateLookupCache<ArtifactType, ArtifactLoot, DataContext.Entities.Artifactloot>(
+            x => (ArtifactType)x.Artifacttype,
+            x => new ArtifactLoot(x)
+        );
         private static readonly IDictionary<ArtifactType, ArtifactInfo> _artifactInfos = Database.CreateCache<ArtifactType, ArtifactInfo>("artifacttypes", "id", ArtifactInfo.GenerateArtifactInfo);
         public ArtifactInfo GetArtifactInfo(ArtifactType type)
         {

@@ -1,7 +1,6 @@
-using System.Collections.Generic;
-using System.Data;
-using Perpetuum.Data;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.ExportedTypes;
+using System.Collections.Generic;
 
 namespace Perpetuum.Services.ExtensionService
 {
@@ -12,7 +11,7 @@ namespace Perpetuum.Services.ExtensionService
         public readonly AggregateField aggregateField;
         public readonly bool isEffectEnhancer;
 
-        public ExtensionBonus(int extensionId,double bonus,AggregateField aggregateField)
+        public ExtensionBonus(int extensionId, double bonus, AggregateField aggregateField)
         {
             this.extensionId = extensionId;
             this.bonus = bonus;
@@ -20,17 +19,17 @@ namespace Perpetuum.Services.ExtensionService
             isEffectEnhancer = false;
         }
 
-        public ExtensionBonus(ExtensionInfo extensionInfo) : this(extensionInfo.id,extensionInfo.bonus,extensionInfo.aggregateField)
+        public ExtensionBonus(ExtensionInfo extensionInfo) : this(extensionInfo.id, extensionInfo.bonus, extensionInfo.aggregateField)
         {
         }
 
 
-        public ExtensionBonus(IDataRecord record)
+        public ExtensionBonus(Chassisbonu entity)
         {
-            extensionId = record.GetValue<int>("extension");
-            bonus = record.GetValue<double>("bonus");
-            aggregateField = record.GetValue<AggregateField>("targetpropertyID");
-            isEffectEnhancer = record.GetValue<bool>(k.effectEnhancer);
+            extensionId = entity.Extension;
+            bonus = entity.Bonus;
+            aggregateField = (AggregateField)entity.TargetpropertyId;
+            isEffectEnhancer = entity.Effectenhancer;
         }
 
         public bool Equals(ExtensionBonus other)
@@ -41,8 +40,8 @@ namespace Perpetuum.Services.ExtensionService
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            if (obj.GetType() != typeof (ExtensionBonus)) return false;
-            return Equals((ExtensionBonus) obj);
+            if (obj.GetType() != typeof(ExtensionBonus)) return false;
+            return Equals((ExtensionBonus)obj);
         }
 
         public override int GetHashCode()
@@ -50,8 +49,8 @@ namespace Perpetuum.Services.ExtensionService
             unchecked
             {
                 int result = extensionId;
-                result = (result*397) ^ bonus.GetHashCode();
-                result = (result*397) ^ aggregateField.GetHashCode();
+                result = (result * 397) ^ bonus.GetHashCode();
+                result = (result * 397) ^ aggregateField.GetHashCode();
                 return result;
             }
         }

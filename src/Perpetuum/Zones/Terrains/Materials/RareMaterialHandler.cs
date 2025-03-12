@@ -1,8 +1,7 @@
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 using Perpetuum.Data;
 using Perpetuum.Items;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Perpetuum.Zones.Terrains.Materials
 {
@@ -12,7 +11,10 @@ namespace Perpetuum.Zones.Terrains.Materials
 
         public RareMaterialHandler()
         {
-            _rareMaterialInfos = Database.CreateLookupCache<int, RareMaterialInfo>("rarematerials", "definition", RareMaterialInfo.CreateFromDbDataRecord);
+            _rareMaterialInfos = Database.CreateLookupCache<int, RareMaterialInfo, DataContext.Entities.Rarematerial>(
+                x => x.Definition,
+                RareMaterialInfo.CreateFromDbDataRecord
+            );
         }
 
         public List<ItemInfo> GenerateRareMaterials(int definition)
@@ -32,19 +34,19 @@ namespace Perpetuum.Zones.Terrains.Materials
             public readonly ItemInfo itemInfo;
             public readonly double chance;
 
-            private RareMaterialInfo(ItemInfo itemInfo,double chance)
+            private RareMaterialInfo(ItemInfo itemInfo, double chance)
             {
                 this.itemInfo = itemInfo;
                 this.chance = chance;
             }
 
-            public static RareMaterialInfo CreateFromDbDataRecord(IDataRecord record)
+            public static RareMaterialInfo CreateFromDbDataRecord(DataContext.Entities.Rarematerial entity)
             {
-                var definition = record.GetValue<int>("raredefinition");
-                var quantity = record.GetValue<int>("quantity");
-                var chance = record.GetValue<double>("chance");
-                
-                return new RareMaterialInfo(new ItemInfo(definition,quantity), chance);
+                var definition = entity.Raredefinition;
+                var quantity = entity.Quantity;
+                var chance = entity.Chance;
+
+                return new RareMaterialInfo(new ItemInfo(definition, quantity), chance);
             }
         }
     }

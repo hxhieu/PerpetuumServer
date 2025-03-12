@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using AutoMapper;
 using Perpetuum.Accounting.Characters;
 using Perpetuum.Data;
 using Perpetuum.DataContext;
 using Perpetuum.EntityFramework;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace Perpetuum.Services.ExtensionService
 {
@@ -116,7 +116,11 @@ namespace Perpetuum.Services.ExtensionService
             if (_robotComponentExtensionBonuses == null)
             {
                 var extensions = GetExtensions();
-                _robotComponentExtensionBonuses = Database.CreateLookupCache<int, ExtensionBonus>("chassisbonus", "definition", r => new ExtensionBonus(r), r => _entityDefaultReader.Value.Exists(r.GetValue<int>("definition")) && extensions.ContainsKey(r.GetValue<int>("extension")));
+                _robotComponentExtensionBonuses = Database.CreateLookupCache<int, ExtensionBonus, DataContext.Entities.Chassisbonu>(
+                    x => x.Definition,
+                    x => new ExtensionBonus(x),
+                    x => _entityDefaultReader.Value.Exists(x.Definition) && extensions.ContainsKey(x.Extension)
+                );
             }
 
             return _robotComponentExtensionBonuses.GetOrEmpty(robotComponentDefinition);

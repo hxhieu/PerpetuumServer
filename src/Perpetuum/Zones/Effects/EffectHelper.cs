@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Perpetuum.Data;
+﻿using Perpetuum.Data;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Items;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Perpetuum.Zones.Effects
 {
@@ -18,12 +18,15 @@ namespace Perpetuum.Zones.Effects
 
         static EffectHelper()
         {
-            _effectDefaultModifiers = Database.CreateLookupCache<EffectType, ItemPropertyModifier>("effectdefaultmodifiers", "effectid", r =>
+            _effectDefaultModifiers = Database.CreateLookupCache<EffectType, ItemPropertyModifier, DataContext.Entities.Effectdefaultmodifier>(
+                x => (EffectType)x.Effectid,
+                x =>
                 {
-                    var field = (AggregateField)r.GetValue<int>("field");
-                    var value = r.GetValue<double>("value");
+                    var field = (AggregateField)x.Field;
+                    var value = x.Value;
                     return ItemPropertyModifier.Create(field, value);
-                });
+                }
+            );
         }
 
         public static EffectInfo GetEffectInfo(EffectType effectType)
@@ -50,14 +53,14 @@ namespace Perpetuum.Zones.Effects
                 var oneEntry = new Dictionary<string, object> {{k.effectType, (int) effectDefaultModifier.Key}};
 
                 var effectsDict = new Dictionary<string, object>();
-                
+
                 foreach (var effect in effectDefaultModifier)
                 {
                     effect.AddToDictionary(effectsDict);
                 }
 
                 oneEntry.Add(k.effect, effectsDict);
-                result.Add("e"+counter++, oneEntry);
+                result.Add("e" + counter++, oneEntry);
             }
 
             return result;
