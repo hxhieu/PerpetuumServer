@@ -13,18 +13,29 @@ namespace Perpetuum.Data
 
     public class DbQuery
     {
-        public static void LogCaller(int depth = 0)
+        public static void LogCaller()
         {
-            var stackTrace = new StackTrace();
-            var callingFrame = stackTrace.GetFrame(depth + 1);  // the caller's frame
-            var callingMethod = callingFrame.GetMethod();
-            var parameters = "";
-            callingMethod.GetParameters().ForEach(x =>
+            var stackTrace = new StackTrace(1); // Ignore itself
+            var frames = stackTrace.GetFrames();
+            var stackString = "";
+
+            foreach (var frame in frames)
             {
-                parameters += x.ParameterType.Name + " " + x.Name + ", ";
-            });
-            parameters = parameters.Trim(' ', ',');
-            Logger.Error($"!>>> RAW SQL CALL: {callingMethod.DeclaringType.FullName} -> {callingMethod.Name} ({parameters})");
+                var method = frame.GetMethod();
+                if (method.DeclaringType?.Namespace.StartsWith("Perpetuum") ?? false)
+                {
+                    stackString += $"[{method.DeclaringType.FullName}] -> {method.Name} (";
+                    method.GetParameters().ForEach(x =>
+                    {
+                        stackString += $"{x.ParameterType.Name} {x.Name}, ";
+                    });
+                    stackString = stackString.Trim(' ', ',');
+                    stackString += "), ";
+                }
+            }
+
+            stackString = stackString.Trim(' ', ',');
+            Logger.Error($"!>>> RAW SQL CALL: {stackString}");
         }
 
         private readonly DbConnectionFactory _connectionFactory;
@@ -91,7 +102,7 @@ namespace Perpetuum.Data
 
                 using (command)
                 {
-                    LogCaller(2); // ExecuteHelper + ExecuteXXX
+                    LogCaller();
                     return execute(command);
                 }
             }
