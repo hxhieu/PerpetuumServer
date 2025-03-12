@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using Perpetuum.Data;
+﻿using Perpetuum.Data;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.EntityFramework;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Items;
@@ -14,18 +11,22 @@ using Perpetuum.Services.MissionEngine.MissionStructures;
 using Perpetuum.Services.ProductionEngine;
 using Perpetuum.Zones;
 using Perpetuum.Zones.Scanning;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 
 namespace Perpetuum.Services.MissionEngine.MissionTargets
 {
-   
+
 
     [Serializable]
-    public abstract class MissionTarget 
+    public abstract class MissionTarget
     {
         public readonly int id;
         private readonly string _name;
         private readonly string _description;
-        public virtual MissionTargetType Type { get; private set ; }
+        public virtual MissionTargetType Type { get; private set; }
 
         protected int? definition;
         protected int? quantity;
@@ -73,7 +74,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
         protected readonly bool scaleSecondaryQuantityWithLevel;
         private readonly double? _primaryscalemult;
         private readonly double? _secondaryscalemult;
-        
+
         private bool _isResolved;
 
         public static MissionDataCache missionDataCache { get; set; }
@@ -88,17 +89,17 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
 
         private bool _isScaled;
 
-        public  bool IsScaled
+        public bool IsScaled
         {
             get { return _isScaled; }
             private set { _isScaled = value; }
         }
 
-        public  int Reward
+        public int Reward
         {
             get { return missionDataCache.GetRewardByType(Type); }
         }
-     
+
 
 
         public virtual void AcceptVisitor(MissionTargetVisitor visitor)
@@ -279,7 +280,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
 
         public ArtifactType TargetArtifactType
         {
-            get { return artifactType == null ? ArtifactType.undefined : (ArtifactType) artifactType; }
+            get { return artifactType == null ? ArtifactType.undefined : (ArtifactType)artifactType; }
         }
 
         public bool FindArtifactSpawnsNpcs
@@ -336,76 +337,76 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
                 {
                     return false;
                 }
-                
+
                 return PrimaryEntityDefault.CategoryFlags.IsCategory(CategoryFlags.cf_raw_material);
             }
         }
 
 
         protected bool ValidPrimaryCategorySet { get { return _primaryCategory != null && _primaryCategory > 0; } }
-        protected CategoryFlags PrimaryCategoryFlags { get { return (CategoryFlags) (_primaryCategory ?? 0); } }
+        protected CategoryFlags PrimaryCategoryFlags { get { return (CategoryFlags)(_primaryCategory ?? 0); } }
 
         protected bool ValidSecondaryCategorySet { get { return _secondaryCategory != null && _secondaryCategory > 0; } }
 
         protected CategoryFlags SecondaryCategoryFlags
         {
-            get { return (CategoryFlags) (_secondaryCategory ?? 0); }
+            get { return (CategoryFlags)(_secondaryCategory ?? 0); }
         }
 
-        protected MissionTarget (IDataRecord record)
+        protected MissionTarget(Missiontarget entity)
         {
-            id = record.GetValue<int>(k.ID.ToLower());
-            _description = record.GetValue<string>(k.description);
-            _name = record.GetValue<string>(k.name);
-            Type = (MissionTargetType) record.GetValue<int>(k.targetType.ToLower());
-            definition = record.GetValue<int?>(k.definition);
-            quantity = record.GetValue<int?>(k.quantity);
-            targetPositionX = record.GetValue<int?>(k.targetPositionX.ToLower());
-            targetPositionY = record.GetValue<int?>(k.targetPositionY.ToLower());
+            id = entity.Id;
+            _description = entity.Description;
+            _name = entity.Name;
+            Type = (MissionTargetType)entity.Targettype;
+            definition = entity.Definition;
+            quantity = entity.Quantity;
+            targetPositionX = entity.Targetpositionx;
+            targetPositionY = entity.Targetpositiony;
 
-            targetPositionRange = record.GetValue<int?>(k.targetPositionRange.ToLower());
-            targetPositionZone = record.GetValue<int?>(k.targetPositionZone.ToLower());
+            targetPositionRange = entity.Targetpositionrange;
+            targetPositionZone = entity.Targetpositionzone;
 
-            probeType = record.GetValue<int?>(k.scanType.ToLower());
+            probeType = entity.Scantype;
 
-            completedMessage = record.GetValue<string>("completedmessage");
-            activatedMessage = record.GetValue<string>("activatedmessage");
-            artifactType = record.GetValue<int?>("artifacttype");
-            teleportChannel = record.GetValue<int?>("teleportchannel");
-            _npcPresenceId = record.GetValue<int?>("npcpresenceid");
+            completedMessage = entity.Completedmessage;
+            activatedMessage = entity.Activatedmessage;
+            artifactType = entity.Artifacttype;
+            teleportChannel = entity.Teleportchannel;
+            _npcPresenceId = entity.Npcpresenceid;
 
-            _missionId = record.GetValue<int>(k.missionID.ToLower());
-            targetOrder = record.GetValue<int>(k.targetOrder.ToLower());
-            displayOrder = record.GetValue<int>(k.displayOrder.ToLower());
-            _branchMissionId = record.GetValue<int?>(k.branchMissionId.ToLower());
-            isOptional = record.GetValue<bool>(k.optional);
-            _isHidden = record.GetValue<bool>(k.hidden);
-            missionStructureEid = record.GetValue<long?>("structureeid");
-            _primaryDefinitionFromIndex = record.GetValue<int?>("primarydefinitionfromindex");
-            _secondaryDefinitionFromIndex = record.GetValue<int?>("secondarydefinitionfromindex");
-            _findRadius = record.GetValue<int?>("findradius");
-            artifactType = record.GetValue<int?>("artifacttype");
-            _spawnNpcs = record.GetValue<bool>("spawnnpcs");
-            isSnapToNextStructure = record.GetValue<bool>("snaptonextstructure");
-            generateSecondaryDefinition = record.GetValue<bool>("generatesecondarydefinition");
-            targetSecondaryAsMyPrimary = record.GetValue<bool>("targetsecondaryasmyprimary");
-            targetPrimaryAsMySecondary = record.GetValue<bool>("targetprimaryasmysecondary");
-            deliverAtAnyLocation = record.GetValue<bool>("anylocation");
-            useQuantityOnly = record.GetValue<bool>("usequantityonly");
-            generateCalibrationProgram = record.GetValue<bool>("generatecprg");
-            generateResearchKit = record.GetValue<bool>("generateresearchkit");
-            _primaryCategory = record.GetValue<long?>("primarycategory");
-            _secondaryCategory = record.GetValue<long?>("secondarycategory");
-            secondaryQuantity = record.GetValue<int?>("secondaryquantity");
-            scalePrimaryQuantityWithLevel = record.GetValue<bool>("scaleprimaryqwithlevel");
-            scaleSecondaryQuantityWithLevel = record.GetValue<bool>("scalesecondaryqwithlevel");
-            _primaryscalemult = record.GetValue<double?>("primaryscalemult");
-            _secondaryscalemult = record.GetValue<double?>("secondaryscalemult");
+            _missionId = entity.Missionid;
+            targetOrder = entity.Targetorder;
+            displayOrder = entity.Displayorder;
+            _branchMissionId = entity.Branchmissionid;
+            isOptional = entity.Optional;
+            _isHidden = entity.Hidden;
+            missionStructureEid = entity.Structureeid;
+            _primaryDefinitionFromIndex = entity.Primarydefinitionfromindex;
+            _secondaryDefinitionFromIndex = entity.Secondarydefinitionfromindex;
+            _findRadius = entity.Findradius;
+
+            _spawnNpcs = entity.Spawnnpcs;
+            isSnapToNextStructure = entity.Snaptonextstructure;
+            generateSecondaryDefinition = entity.Generatesecondarydefinition;
+            targetSecondaryAsMyPrimary = entity.Targetsecondaryasmyprimary;
+            targetPrimaryAsMySecondary = entity.Targetprimaryasmysecondary;
+            deliverAtAnyLocation = entity.Anylocation;
+            useQuantityOnly = entity.Usequantityonly;
+            generateCalibrationProgram = entity.Generatecprg;
+            generateResearchKit = entity.Generateresearchkit;
+            _primaryCategory = entity.Primarycategory;
+            _secondaryCategory = entity.Secondarycategory;
+            secondaryQuantity = entity.Secondaryquantity;
+            scalePrimaryQuantityWithLevel = entity.Scaleprimaryqwithlevel;
+            scaleSecondaryQuantityWithLevel = entity.Scalesecondaryqwithlevel;
+            _primaryscalemult = entity.Primaryscalemult;
+            _secondaryscalemult = entity.Secondaryscalemult;
 
             ResetMyDictionary();
         }
 
-       
+
 
 
         public MissionTarget GetClone()
@@ -450,10 +451,10 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
 
 
         private Lazy<Dictionary<string, object>> _myDictionary;
-        
 
 
-        public  virtual Dictionary<string, object> ToDictionary()
+
+        public virtual Dictionary<string, object> ToDictionary()
         {
             return _myDictionary.Value;
         }
@@ -465,7 +466,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
 
         public MaterialProbeType GetProbeType
         {
-            get { return (probeType == null) ? MaterialProbeType.Undefined : (MaterialProbeType) probeType; }
+            get { return (probeType == null) ? MaterialProbeType.Undefined : (MaterialProbeType)probeType; }
         }
 
         public int MineralDefinition
@@ -473,14 +474,14 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
             get { return definition ?? 0; }
         }
 
-        
 
-            /// <summary>
+
+        /// <summary>
         /// ez a recordbol osszerakja megegyszer, csak az ellenorzes kedveert, ... nem kene de ez van %%%
         /// </summary>
         /// <param name="record"></param>
         /// <returns></returns>
-        public static bool Filter(IDataRecord record)
+        public static bool Filter(Missiontarget record)
         {
             var target = MissionTargetFactory.GenerateMissionTargetFromConfigRecord(record);
 
@@ -553,7 +554,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
                             return false;
                         }
 
-                        ed = EntityDefault.Get((int) definition);
+                        ed = EntityDefault.Get((int)definition);
                         if (ed == null)
                         {
                             Logger.Error("consistency error mission target ID:" + id + " definition not exists or not enabled. definition: " + definition);
@@ -617,7 +618,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
                     return false;
                 }
 
-                switch ((MaterialProbeType) probeType)
+                switch ((MaterialProbeType)probeType)
                 {
                     case MaterialProbeType.Area:
                     case MaterialProbeType.Directional:
@@ -634,7 +635,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
                             return false;
                         }
 
-                        ed = EntityDefault.Get((int) definition);
+                        ed = EntityDefault.Get((int)definition);
 
                         if (ed == null) return false;
                         if (ed.CategoryFlags.IsCategory(CategoryFlags.cf_organic))
@@ -664,9 +665,9 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
             }
 
             //check enum and code consistency
-            if (!((int) Type).IsValueInEnum<MissionTargetType>())
+            if (!((int)Type).IsValueInEnum<MissionTargetType>())
             {
-                Logger.Error("error occured caching the mission targets. Target type exists in database but in MissionTargetType not found: ID:" + (int) Type);
+                Logger.Error("error occured caching the mission targets. Target type exists in database but in MissionTargetType not found: ID:" + (int)Type);
                 return false;
             }
 
@@ -706,7 +707,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
             targetPositionX = record.GetValue<int?>("x");
             targetPositionY = record.GetValue<int?>("y");
             artifactType = record.GetValue<int?>("artifacttype");
-            Type = (MissionTargetType) record.GetValue<int>("targettype");
+            Type = (MissionTargetType)record.GetValue<int>("targettype");
             probeType = record.GetValue<int?>("scantype");
             targetPositionRange = record.GetValue<int?>("targetrange");
 
@@ -744,10 +745,10 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
                 .SetParameter("@x", targetPositionX)
                 .SetParameter("@y", targetPositionY)
                 .SetParameter("@artifactType", artifactType)
-                .SetParameter("@targetType", (int) Type)
+                .SetParameter("@targetType", (int)Type)
                 .SetParameter("@scanType", probeType)
                 .SetParameter("@targetRange", targetPositionRange);
-                
+
 
         }
 
@@ -815,7 +816,7 @@ VALUES  ( @name ,
                 .SetParameter("@eid", eid)
                 .ExecuteNonQuery();
 
-           // (res == 1).ThrowIfFalse(ErrorCodes.SQLUpdateError); %%% csak melora
+            // (res == 1).ThrowIfFalse(ErrorCodes.SQLUpdateError); %%% csak melora
         }
 
         public static bool IsTargetNameTaken(string targetName)
@@ -830,7 +831,7 @@ VALUES  ( @name ,
             return
                 Db.Query().CommandText("SELECT COUNT(DISTINCT name) FROM dbo.missiontargets WHERE targetpositionzone=@zoneId AND targettype=@targetType")
                     .SetParameter("@zoneId", zoneId)
-                    .SetParameter("@targetType", (int) missionTargetType)
+                    .SetParameter("@targetType", (int)missionTargetType)
                     .ExecuteScalar<int>();
         }
 
@@ -1078,26 +1079,26 @@ VALUES  ( @name ,
                 //sanity check
                 if (!ValidDefinitionSet)
                 {
-                    Logger.Error("primary definition is not set in linked target. " + destinationTarget + " linking as secondary to " + this );
+                    Logger.Error("primary definition is not set in linked target. " + destinationTarget + " linking as secondary to " + this);
                     throw new PerpetuumException(ErrorCodes.ConsistencyError);
                 }
 
-                Log("copy def primary->secondary definition:" + Definition + " " + PrimaryEntityDefault.Name +" to " + destinationTarget);
-                
+                Log("copy def primary->secondary definition:" + Definition + " " + PrimaryEntityDefault.Name + " to " + destinationTarget);
+
                 //switched
                 destinationTarget.SecondaryDefinition = Definition;
-                
+
             }
             else
             {
                 //sanity check
                 if (!ValidSecondaryDefinitionSet)
                 {
-                    Logger.Error("secondary definition is not set in linked target. " + destinationTarget + " linking as secondary to " + this );
+                    Logger.Error("secondary definition is not set in linked target. " + destinationTarget + " linking as secondary to " + this);
                     throw new PerpetuumException(ErrorCodes.ConsistencyError);
                 }
 
-                Log("copy secondary->secondary definition:" + SecondaryDefinition + " " + SecondaryEntityDefault.Name  +" to " + destinationTarget);
+                Log("copy secondary->secondary definition:" + SecondaryDefinition + " " + SecondaryEntityDefault.Name + " to " + destinationTarget);
 
                 //default
                 destinationTarget.SecondaryDefinition = SecondaryDefinition;

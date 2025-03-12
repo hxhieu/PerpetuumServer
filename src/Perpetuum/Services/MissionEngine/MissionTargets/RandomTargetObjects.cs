@@ -1,13 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Log;
 using Perpetuum.Services.MissionEngine.Missions;
 using Perpetuum.Services.MissionEngine.MissionStructures;
 using Perpetuum.Services.ProductionEngine;
 using Perpetuum.Zones.Scanning;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 
 namespace Perpetuum.Services.MissionEngine.MissionTargets
 {
@@ -17,7 +18,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     [Serializable]
     public class RandomPointMissionTarget : MissionTarget
     {
-        public RandomPointMissionTarget(IDataRecord record) : base(record) {}
+        public RandomPointMissionTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
@@ -29,7 +30,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     [Serializable]
     public abstract class MissionStructureTarget : RandomMissionTarget
     {
-        protected MissionStructureTarget(IDataRecord record) : base(record) {}
+        protected MissionStructureTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
@@ -81,7 +82,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     [Serializable]
     public class PopNpcRandomTarget : RandomMissionTarget
     {
-        public PopNpcRandomTarget(IDataRecord record) : base(record)
+        public PopNpcRandomTarget(Missiontarget record) : base(record)
         {
             useQuantityOnly = true; //this is forcing the new tech
         }
@@ -148,7 +149,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     [Serializable]
     public class KillRandomTarget : RandomMissionTarget
     {
-        public KillRandomTarget(IDataRecord record) : base(record)
+        public KillRandomTarget(Missiontarget record) : base(record)
         {
             useQuantityOnly = true; //new tech
         }
@@ -208,7 +209,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
 
        
 
-        public LootRandomTarget(IDataRecord record) : base(record) {}
+        public LootRandomTarget(Missiontarget record) : base(record) {}
 
 
         public override MissionTargetType Type
@@ -259,7 +260,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     {
        
 
-        public UseSwitchRandomTarget(IDataRecord record) : base(record) {}
+        public UseSwitchRandomTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
@@ -304,7 +305,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     {
         
 
-        public SubmitItemRandomTarget(IDataRecord record) : base(record) {}
+        public SubmitItemRandomTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
@@ -349,7 +350,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     {
        
 
-        public ItemSupplyRandomTarget(IDataRecord record) : base(record) {}
+        public ItemSupplyRandomTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
@@ -409,7 +410,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     [Serializable]
     public class FindArtifactRandomTarget : RandomMissionTarget
     {
-        public FindArtifactRandomTarget(IDataRecord record) : base(record)
+        public FindArtifactRandomTarget(Missiontarget record) : base(record)
         {
             useQuantityOnly = true; //new tech
         }
@@ -512,7 +513,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     {
         
 
-        public ScanMineralRandomTarget(IDataRecord record) : base(record) {}
+        public ScanMineralRandomTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
@@ -569,7 +570,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     {
         private long[] _lockedNpcEids;
 
-        public LockUnitRandomTarget(IDataRecord record) : base(record)
+        public LockUnitRandomTarget(Missiontarget record) : base(record)
         {
             useQuantityOnly = true; //force new tech
         }
@@ -652,7 +653,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     {
         
 
-        public DrillMineralRandomTarget(IDataRecord record) : base(record) {}
+        public DrillMineralRandomTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
@@ -722,7 +723,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     {
        
 
-        public HarvestPlantRandomTarget(IDataRecord record) : base(record) {}
+        public HarvestPlantRandomTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
@@ -788,7 +789,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     public class FetchItemRandomTarget : RandomMissionTarget
     {
        
-        public FetchItemRandomTarget(IDataRecord record) : base(record) {}
+        public FetchItemRandomTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
@@ -919,7 +920,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     [Serializable]
     public class MassproduceRandomTarget : RandomMissionTarget
     {
-        public MassproduceRandomTarget(IDataRecord record) : base(record) {}
+        public MassproduceRandomTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
@@ -1017,7 +1018,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     [Serializable]
     public class ResearchRandomTarget : RandomMissionTarget
     {
-        public ResearchRandomTarget(IDataRecord record) : base(record) {}
+        public ResearchRandomTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
@@ -1072,7 +1073,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
     [Serializable]
     public class SpawnItemRandomTarget : RandomMissionTarget
     {
-        public SpawnItemRandomTarget(IDataRecord record) : base(record) {}
+        public SpawnItemRandomTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {

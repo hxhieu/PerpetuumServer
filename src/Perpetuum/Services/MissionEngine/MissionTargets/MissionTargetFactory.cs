@@ -1,21 +1,20 @@
-﻿using System;
-using System.Data;
-using Perpetuum.Data;
+﻿using Perpetuum.DataContext.Entities;
+using System;
 
 namespace Perpetuum.Services.MissionEngine.MissionTargets
 {
     public static class MissionTargetFactory
     {
-        public static MissionTarget GenerateMissionTargetFromConfigRecord(IDataRecord record)
+        public static MissionTarget GenerateMissionTargetFromConfigRecord(Missiontarget record)
         {
             var target = CreateTargetFromConfigRecord(record);
             target.PostLoadedAsConfigTarget();
             return target;
         }
         
-        private static MissionTarget CreateTargetFromConfigRecord(IDataRecord record)
+        private static MissionTarget CreateTargetFromConfigRecord(Missiontarget record)
         {
-            var targetType = (MissionTargetType)record.GetValue<int>(k.targetType.ToLower());
+            var targetType = (MissionTargetType)record.Targettype;
 
             switch (targetType)
             {

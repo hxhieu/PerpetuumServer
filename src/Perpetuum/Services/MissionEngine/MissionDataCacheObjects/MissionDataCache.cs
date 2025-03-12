@@ -21,7 +21,11 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
     /// <summary>
     /// Read only mission data cache
     /// </summary>
-    public class MissionDataCache
+    public class MissionDataCache(
+        IExtensionReader extensionReader,
+        IZoneManager zoneManager,
+        IEntityDefaultReader entityDefaultReader
+    )
     {
         private IDictionary<string, object> _dataCache; //prepared client data
 
@@ -39,11 +43,11 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
         private IDictionary<int, MissionLocation> _missionLocations;
         private IDictionary<int, int> _mineralDefinitionToAmountPerCycle;
         private IDictionary<MissionTargetType, int> _rewardByType;
-        private IDictionary<int, int> _levelToGrind; 
+        private IDictionary<int, int> _levelToGrind;
 
         private List<MissionResolveInfo> _missionResolveInfos;
         private Dictionary<string, double> _missionConstants;
-       
+
         private readonly List<ArtifactInfo> _missionArtifactInfos = new List<ArtifactInfo>();
         private readonly Dictionary<int, int> _mineralDefinitionToGeoscanDocumentDefinition = new Dictionary<int, int>();
 
@@ -61,17 +65,17 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
             return amount;
         }
 
-       
+
         public int ScaleMaxGangMembers
         {
-            get { return (int) GetMissionConstantValue("ScaleMaxGangMembers"); }
+            get { return (int)GetMissionConstantValue("ScaleMaxGangMembers"); }
         }
 
         public double ScaleMineralLevelFractionForGangMember
         {
             get { return GetMissionConstantValue("ScaleMineralLevelFractionForGangMember"); }
         }
-        
+
         public double ScaleArtifactLevelFractionForGangMember
         {
             get { return GetMissionConstantValue("ScaleArtifactLevelFractionForGangMember"); }
@@ -80,17 +84,6 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
         public double RewardPerKilometer
         {
             get { return GetMissionConstantValue("RewardPerKilometer"); }
-        }
-
-        private readonly IExtensionReader _extensionReader;
-        private readonly IZoneManager _zoneManager;
-        private readonly IEntityDefaultReader _entityDefaultReader;
-
-        public MissionDataCache(IExtensionReader extensionReader,IZoneManager zoneManager,IEntityDefaultReader entityDefaultReader)
-        {
-            _extensionReader = extensionReader;
-            _zoneManager = zoneManager;
-            _entityDefaultReader = entityDefaultReader;
         }
 
         #region cache mission
@@ -110,10 +103,10 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
             InitArtifactInfos();
             InitMissionResolveInfos();
             InitMissionConstants();
-            
+
             _missionLocations = Database.CreateCache<int, MissionLocation>("missionlocations", "id", MissionLocation.FromRecord);
 
-            _targets = Database.CreateCache<int, MissionTarget>("missiontargets", "id", MissionTargetFactory.GenerateMissionTargetFromConfigRecord, MissionTarget.Filter);
+            _targets = Database.CreateCache<int, MissionTarget, DataContext.Entities.Missiontarget>(x => x.Id, MissionTargetFactory.GenerateMissionTargetFromConfigRecord, MissionTarget.Filter);
 
             _requiredExtensions = Database.CreateLookupCache<int, Extension>("missionrequiredextensions", "missionid", r => new Extension(r.GetValue<int>(k.extensionID.ToLower()), r.GetValue<int>(k.extensionLevel.ToLower())), FilterRequiredExtensions);
 
@@ -139,12 +132,12 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
 
             _levelToGrind = Database.CreateCache<int, int>("missiongrind", "missionlevel", r => r.GetValue<int>("amount"));
 
-            _targetSeletionValidator = new Lazy<TargetSelectionValidator>(() => TargetSelectionValidator.CreateValidator(_zoneManager));
-           
+            _targetSeletionValidator = new Lazy<TargetSelectionValidator>(() => TargetSelectionValidator.CreateValidator(zoneManager));
+
             _dataCache = null;
         }
 
-       
+
 
         private void InitMissionConstants()
         {
@@ -207,7 +200,7 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
         {
             get
             {
-                return  _missions.Values.Where(m => m.behaviourType == MissionBehaviourType.Random && m.title.Contains("missiontemplate")).ToList();
+                return _missions.Values.Where(m => m.behaviourType == MissionBehaviourType.Random && m.title.Contains("missiontemplate")).ToList();
             }
         }
 
@@ -216,7 +209,7 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
         private bool FilterRequiredExtensions(IDataRecord record)
         {
             var extensionId = record.GetValue<int>(k.extensionID.ToLower());
-            if (!_extensionReader.GetExtensions().ContainsKey(extensionId))
+            if (!extensionReader.GetExtensions().ContainsKey(extensionId))
             {
                 Logger.Error("consistency error in mission required extensions! ID:" + record.GetValue<int>(k.ID.ToLower()));
                 return false;
@@ -229,7 +222,7 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
             var definition = record.GetValue<int>(k.definition);
             var quantity = record.GetValue<int>(k.quantity);
 
-            if (!_entityDefaultReader.Exists(definition) || quantity <= 0)
+            if (!entityDefaultReader.Exists(definition) || quantity <= 0)
             {
                 Logger.Error("consistency error in mission start items. ID:" + record.GetValue<int>(k.ID.ToLower()));
                 return false;
@@ -351,7 +344,7 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
         private static Dictionary<string, object> ListMissionTypes()
         {
             var counter = 0;
-            return (from t in Db.Query().CommandText("select id,name,category from missiontypes").Execute() select (object) new Dictionary<string, object> {{k.key, t.GetValue<int>(0)}, {k.name, t.GetValue<string>(1)}, {k.category, t.GetValue<string>(2)}}).ToDictionary(d => "t" + counter++);
+            return (from t in Db.Query().CommandText("select id,name,category from missiontypes").Execute() select (object)new Dictionary<string, object> { { k.key, t.GetValue<int>(0) }, { k.name, t.GetValue<string>(1) }, { k.category, t.GetValue<string>(2) } }).ToDictionary(d => "t" + counter++);
         }
 
 
@@ -451,9 +444,9 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
         {
             var periodicMissions = GetPeriodicMissions().ToArray();
 
-            if (periodicMissions.Length>0)
+            if (periodicMissions.Length > 0)
             {
-                return  periodicMissions.Max(m => m.IsPeriodic ? m.PeriodMinutes : 0);
+                return periodicMissions.Max(m => m.IsPeriodic ? m.PeriodMinutes : 0);
             }
 
             return 0;
@@ -477,14 +470,14 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
                 {
                     //level -1 + random template
 
-                    CollectConfigMissionByLocation(location,result,ref counter);
-                    CollectRandomMissionsByLocation(location,result,ref counter);
+                    CollectConfigMissionByLocation(location, result, ref counter);
+                    CollectRandomMissionsByLocation(location, result, ref counter);
 
                 }
                 else
                 {
                     //oldschool
-                    CollectConfigMissionByLocation(location,result,ref counter);
+                    CollectConfigMissionByLocation(location, result, ref counter);
 
                 }
 
@@ -494,7 +487,7 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
         }
 
 
-        private void CollectConfigMissionByLocation(MissionLocation location, Dictionary<string,object> result, ref int counter )
+        private void CollectConfigMissionByLocation(MissionLocation location, Dictionary<string, object> result, ref int counter)
         {
             var maxLevel = 10; //
             for (var i = -1; i < maxLevel; i++)
@@ -592,7 +585,7 @@ JOIN dbo.minerals m ON m.idx = mc.materialtype
  WHERE mc.zoneid=@zoneId
   AND mc.materialtype !=10 and mc.materialtype != 15 and mc.materialtype != 13 AND mc.materialtype != 16
 ";
-            foreach (var zone in _zoneManager.Zones)
+            foreach (var zone in zoneManager.Zones)
             {
                 var mineralDefinitions = Db.Query().CommandText(query)
                                                 .SetParameter("@zoneId", zone.Id)
@@ -662,7 +655,7 @@ JOIN dbo.minerals m ON m.idx = mc.materialtype
         }
 
 
-       
+
 
         public static string GetCorporationPostFixByMissionCategory(MissionCategory missionCategory)
         {
@@ -886,12 +879,12 @@ JOIN dbo.minerals m ON m.idx = mc.materialtype
 
                 default:
                     return MissionExtensionSelector.none;
-                
+
 
             }
         }
 
-      
+
 
         [CanBeNull]
         public MissionTarget GetTargetByStructureUnit(Unit structureUnit)

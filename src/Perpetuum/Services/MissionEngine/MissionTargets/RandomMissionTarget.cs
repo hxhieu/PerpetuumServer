@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
+﻿using Perpetuum.DataContext.Entities;
 using Perpetuum.EntityFramework;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Items.Templates;
@@ -10,6 +7,10 @@ using Perpetuum.Services.MissionEngine.Missions;
 using Perpetuum.Services.ProductionEngine;
 using Perpetuum.Zones;
 using Perpetuum.Zones.Artifacts;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 
 namespace Perpetuum.Services.MissionEngine.MissionTargets
 {
@@ -20,7 +21,7 @@ namespace Perpetuum.Services.MissionEngine.MissionTargets
         private static readonly List<int> _minRandomNpcPerLevel = new List<int>() {0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 5};
         private static readonly List<int> _maxRandomNpcPerLevel = new List<int>() {1, 1, 1, 2, 2, 3, 3, 4, 5, 5, 5};
 
-        protected RandomMissionTarget(IDataRecord record) : base(record) {}
+        protected RandomMissionTarget(Missiontarget record) : base(record) {}
 
         public override void AcceptVisitor(MissionTargetVisitor visitor)
         {
