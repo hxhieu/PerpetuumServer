@@ -4,7 +4,6 @@ using Perpetuum.ExportedTypes;
 using Perpetuum.Log;
 using Perpetuum.Services.ProductionEngine.CalibrationPrograms;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 
 namespace Perpetuum.Services.ProductionEngine
@@ -28,17 +27,24 @@ namespace Perpetuum.Services.ProductionEngine
 
         public void Init()
         {
-            _prototypes = Database.CreateCache<int, int>("prototypes", k.definition, "prototype");
-            _researchlevels = Database.CreateCache<int, ItemResearchLevel>("itemresearchlevels", k.definition, r =>
-            {
-                var level = new ItemResearchLevel
+            _prototypes = Database.CreateCache<int, int, DataContext.Entities.Prototype>(
+                x => x.Definition,
+                x => x.Prototype1
+            );
+            _researchlevels = Database.CreateCache<int, ItemResearchLevel, DataContext.Entities.Itemresearchlevel>(
+                x => x.Definition,
+                x =>
                 {
-                    definition = r.GetValue<int>(k.definition),
-                    researchLevel = r.GetValue<int>(k.researchLevel.ToLower()),
-                    calibrationProgramDefinition = r.GetValue<int?>(k.calibrationProgram.ToLower())
-                };
-                return level;
-            }, ItemResearchLevelFilter);
+                    var level = new ItemResearchLevel
+                    {
+                        definition = x.Definition,
+                        researchLevel = x.Researchlevel,
+                        calibrationProgramDefinition = x.Calibrationprogram
+                    };
+                    return level;
+                },
+                ItemResearchLevelFilter
+            );
 
             _productionComponents = Database.CreateLookupCache<int, ProductionComponent, DataContext.Entities.Component>(
                 x => x.Definition,
@@ -51,26 +57,39 @@ namespace Perpetuum.Services.ProductionEngine
                 x => _entityDefaultReader.Exists(x.Definition)
             );
 
-            _productionDurations = Database.CreateCache<CategoryFlags, double>("productionduration", k.category, "durationmodifier");
-            _calibrationDefaults = Database.CreateCache<int, CalibrationDefault>("calibrationdefaults", k.definition, r => new CalibrationDefault(r));
-            _productionDecalibrations = Database.CreateCache<CategoryFlags, ProductionDecalibration>("productiondecalibration", "categoryflag", r =>
-            {
-                var distorsionMin = r.GetValue<double>(k.distorsionMin.ToLower());
-                var distorsionMax = r.GetValue<double>(k.distorsionMax.ToLower());
-                var decrease = r.GetValue<double>("decrease");
-                return new ProductionDecalibration(distorsionMin, distorsionMax, decrease);
-            });
-
-            _researchlevels = Database.CreateCache<int, ItemResearchLevel>("itemresearchlevels", k.definition, r =>
-            {
-                var level = new ItemResearchLevel
+            _productionDurations = Database.CreateCache<CategoryFlags, double, DataContext.Entities.Productionduration>(
+                x => (CategoryFlags)x.Category,
+                x => x.Durationmodifier
+            );
+            _calibrationDefaults = Database.CreateCache<int, CalibrationDefault, DataContext.Entities.Calibrationdefault>(
+                x => x.Definition,
+                x => new CalibrationDefault(x)
+            );
+            _productionDecalibrations = Database.CreateCache<CategoryFlags, ProductionDecalibration, DataContext.Entities.Productiondecalibration>(
+                x => (CategoryFlags)x.Categoryflag,
+                x =>
                 {
-                    definition = r.GetValue<int>(k.definition),
-                    researchLevel = r.GetValue<int>(k.researchLevel.ToLower()),
-                    calibrationProgramDefinition = r.GetValue<int?>(k.calibrationProgram.ToLower())
-                };
-                return level;
-            }, ItemResearchLevelFilter);
+                    var distorsionMin = x.Distorsionmin;
+                    var distorsionMax = x.Distorsionmax;
+                    var decrease = x.Decrease ?? 0;
+                    return new ProductionDecalibration(distorsionMin, distorsionMax, decrease);
+                }
+            );
+
+            _researchlevels = Database.CreateCache<int, ItemResearchLevel, DataContext.Entities.Itemresearchlevel>(
+                x => x.Definition,
+                x =>
+                {
+                    var level = new ItemResearchLevel
+                    {
+                        definition = x.Definition,
+                        researchLevel = x.Researchlevel,
+                        calibrationProgramDefinition = x.Calibrationprogram
+                    };
+                    return level;
+                },
+                ItemResearchLevelFilter
+            );
 
             ProductionCost = new Dictionary<int, double>();
             foreach (var ed in EntityDefault.All)
@@ -79,16 +98,16 @@ namespace Perpetuum.Services.ProductionEngine
             }
         }
 
-        public bool ItemResearchLevelFilter(IDataRecord record)
+        public bool ItemResearchLevelFilter(DataContext.Entities.Itemresearchlevel record)
         {
-            var definition = record.GetValue<int>(k.definition);
+            var definition = record.Definition;
 
-            if (!_entityDefaultReader.Exists(definition) || !record.GetValue<bool>(k.enabled))
+            if (!_entityDefaultReader.Exists(definition) || !record.Enabled)
             {
                 return false;
             }
 
-            var calibrationPrg = record.GetValue<int?>(k.calibrationProgram.ToLower());
+            var calibrationPrg = record.Calibrationprogram;
             if (calibrationPrg == null)
                 return true;
 

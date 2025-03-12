@@ -1,6 +1,4 @@
-﻿using System.Data;
-using Perpetuum.Data;
-using Perpetuum.ExportedTypes;
+﻿using Perpetuum.ExportedTypes;
 
 namespace Perpetuum.Zones.Artifacts
 {
@@ -15,16 +13,13 @@ namespace Perpetuum.Zones.Artifacts
         public readonly bool isPersistent;
         public readonly int minimumLoot;
 
-        public ArtifactInfo(IDataRecord record)
+        public ArtifactInfo(DataContext.Entities.Artifacttype entity)
         {
-            type = record.GetValue<ArtifactType>("id");
-            goalRange = record.GetValue<int>("goalrange");
-            npcPresenceId = record.GetValue<int?>("npcpresenceid");
-            isPersistent = record.GetValue<bool>("persistent");
-            minimumLoot = record.GetValue<int>("minimumloot");
-
-            
-
+            type = (ArtifactType)entity.Id;
+            goalRange = entity.Goalrange;
+            npcPresenceId = entity.Npcpresenceid;
+            isPersistent = entity.Persistent;
+            minimumLoot = entity.Minimumloot;
         }
 
         public override string ToString()
@@ -32,23 +27,23 @@ namespace Perpetuum.Zones.Artifacts
             return string.Format("ArtifactInfo type:" + type);
         }
 
-        public static ArtifactInfo GenerateArtifactInfo(IDataRecord record)
+        public static ArtifactInfo GenerateArtifactInfo(DataContext.Entities.Artifacttype entity)
         {
-            var persistentArtifact = record.GetValue<bool>("persistent");
-            var isDynamic = record.GetValue<bool>("dynamic");
+            var persistentArtifact = entity.Persistent;
+            var isDynamic = entity.Dynamic;
             if (persistentArtifact)
             {
                 //normal persistent artifact
-                return new ArtifactInfo(record);
+                return new ArtifactInfo(entity);
             }
 
             if (isDynamic)
             {
-                return new DynamicArtifactInfo(record);
+                return new DynamicArtifactInfo(entity);
             }
 
             //mission artifact, oldschool
-            return new NonPersistentArtifactInfo(record);
+            return new NonPersistentArtifactInfo(entity);
 
         }
 
@@ -59,7 +54,7 @@ namespace Perpetuum.Zones.Artifacts
     /// </summary>
     public class NonPersistentArtifactInfo : ArtifactInfo
     {
-        public NonPersistentArtifactInfo(IDataRecord record) : base(record)
+        public NonPersistentArtifactInfo(DataContext.Entities.Artifacttype record) : base(record)
         {
            
         }
@@ -70,7 +65,7 @@ namespace Perpetuum.Zones.Artifacts
     /// </summary>
     public class DynamicArtifactInfo : NonPersistentArtifactInfo
     {
-        public DynamicArtifactInfo(IDataRecord record) : base(record)
+        public DynamicArtifactInfo(DataContext.Entities.Artifacttype record) : base(record)
         {
             
         }

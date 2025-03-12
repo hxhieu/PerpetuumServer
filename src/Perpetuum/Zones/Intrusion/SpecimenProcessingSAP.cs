@@ -1,15 +1,14 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Transactions;
 using Perpetuum.Accounting.Characters;
 using Perpetuum.Data;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Items;
 using Perpetuum.Players;
 using Perpetuum.Robots;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Transactions;
 
 namespace Perpetuum.Zones.Intrusion
 {
@@ -43,14 +42,16 @@ namespace Perpetuum.Zones.Intrusion
 
         static SpecimenProcessingSAP()
         {
-            _specimenProcessingItems = Database.CreateCache<int, SiegeItem>("siegeitems", "id", r =>
-            {
-                var definition = r.GetValue<int>("definition");
-                var minQty = r.GetValue<int>("minquantity");
-                var maxQty = r.GetValue<int>("maxquantity");
-                return new SiegeItem(definition, new IntRange(minQty, maxQty));
-            });
-           
+            _specimenProcessingItems = Database.CreateCache<int, SiegeItem, DataContext.Entities.Siegeitem>(
+                x => x.Id,
+                x =>
+                {
+                    var definition = x.Definition;
+                    var minQty = x.Minquantity;
+                    var maxQty = x.Maxquantity;
+                    return new SiegeItem(definition, new IntRange(minQty, maxQty));
+                }
+            );
         }
 
         public SpecimenProcessingSAP() : base(BeamType.attackpoint_item_enter, BeamType.attackpoint_item_out)
@@ -65,7 +66,7 @@ namespace Perpetuum.Zones.Intrusion
         private static IList<ItemInfo> GenerateSpecimenProcessingItemList(int count = 5)
         {
             var result = new List<ItemInfo>();
-            while(result.Count < count)
+            while (result.Count < count)
             {
                 var randomItemInfo = _specimenProcessingItems.RandomElement();
                 var siegeItem = randomItemInfo.Value;
@@ -88,7 +89,7 @@ namespace Perpetuum.Zones.Intrusion
             return _itemInfos[index];
         }
 
-        public void SubmitItem(Player player,long itemEid)
+        public void SubmitItem(Player player, long itemEid)
         {
             IsInRangeOf3D(player, SUBMIT_ITEM_RANGE).ThrowIfFalse(ErrorCodes.AttackPointIsOutOfRange);
 
@@ -96,7 +97,7 @@ namespace Perpetuum.Zones.Intrusion
 
             var progress = _playerItemProgresses.GetOrAdd(player.Character.Id, new PlayerItemProgress());
 
-            progress.nextSubmitTime.ThrowIfGreater(DateTime.Now,ErrorCodes.SiegeSubmitItemOverload);
+            progress.nextSubmitTime.ThrowIfGreater(DateTime.Now, ErrorCodes.SiegeSubmitItemOverload);
 
             var container = player.GetContainer();
             Debug.Assert(container != null, "container != null");
@@ -106,7 +107,7 @@ namespace Perpetuum.Zones.Intrusion
 
             var requestedItemInfo = GetItemInfo(progress.index);
 
-            requestedItemInfo.Definition.ThrowIfNotEqual(item.Definition,ErrorCodes.SiegeDefinitionNotSupported);
+            requestedItemInfo.Definition.ThrowIfNotEqual(item.Definition, ErrorCodes.SiegeDefinitionNotSupported);
 
             var neededQty = requestedItemInfo.Quantity - progress.quantity;
 
@@ -114,7 +115,7 @@ namespace Perpetuum.Zones.Intrusion
 
             container.Save();
 
-            if ( submittedQty > 0 )
+            if (submittedQty > 0)
             {
                 Transaction.Current.OnCompleted(c => UpdateProgess(player, container, submittedQty, requestedItemInfo, progress));
             }
@@ -136,7 +137,7 @@ namespace Perpetuum.Zones.Intrusion
 
             container.SendUpdateToOwnerAsync();
 
-            if (progress.index >= _itemInfos.Count) 
+            if (progress.index >= _itemInfos.Count)
                 return;
 
             SendProgressToPlayer(player.Character);
@@ -147,9 +148,9 @@ namespace Perpetuum.Zones.Intrusion
             var currentIndex = 0;
             var submittedQty = 0;
             var nextSubmitTime = default(DateTime);
-           
+
             PlayerItemProgress itemProgress;
-            if ( _playerItemProgresses.TryGetValue(character.Id,out itemProgress))
+            if (_playerItemProgresses.TryGetValue(character.Id, out itemProgress))
             {
                 currentIndex = itemProgress.index;
                 submittedQty = itemProgress.quantity;
@@ -159,7 +160,7 @@ namespace Perpetuum.Zones.Intrusion
             var itemInfo = GetItemInfo(currentIndex);
             var maxScore = MaxScore;
             var currentScore = GetPlayerScore(character);
-            
+
             var data = new Dictionary<string, object>
                            {
                                {k.eid,Eid},
@@ -202,9 +203,9 @@ namespace Perpetuum.Zones.Intrusion
             public DateTime nextSubmitTime;
         }
 
-        protected override void AppendTopScoresToPacket(Packet packet,int count)
+        protected override void AppendTopScoresToPacket(Packet packet, int count)
         {
-            AppendPlayerTopScoresToPacket(this, packet,count);
+            AppendPlayerTopScoresToPacket(this, packet, count);
         }
 
     }

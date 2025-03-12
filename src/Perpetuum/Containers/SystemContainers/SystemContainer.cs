@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
-using Perpetuum.Data;
+﻿using Perpetuum.Data;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.EntityFramework;
+using System.Collections.Generic;
 
 namespace Perpetuum.Containers.SystemContainers
 {
@@ -10,7 +11,10 @@ namespace Perpetuum.Containers.SystemContainers
 
         static SystemContainer()
         {
-            _entityStorage = Database.CreateCache<string, long>("entitystorage", "storage_name", "eid");
+            _entityStorage = Database.CreateCache<string, long, Entitystorage>(
+                x => x.StorageName,
+                x => x.Eid ?? 0
+            );
         }
 
         public override void AcceptVisitor(IEntityVisitor visitor)

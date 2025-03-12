@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
-using Perpetuum.Data;
+﻿using Perpetuum.Data;
+using Perpetuum.DataContext.Entities;
 using Perpetuum.ExportedTypes;
+using System.Collections.Generic;
 
 namespace Perpetuum
 {
@@ -10,7 +11,10 @@ namespace Perpetuum
 
         static AggregateFieldExtensions()
         {
-            _formulas = Database.CreateCache<AggregateField, AggregateFormula>("aggregatefields", "id", "formula");
+            _formulas = Database.CreateCache<AggregateField, AggregateFormula, Aggregatefield>(
+                x => (AggregateField)x.Id,
+                x => (AggregateFormula)x.Formula
+            );
         }
 
         public static AggregateFormula GetFormula(this AggregateField field)

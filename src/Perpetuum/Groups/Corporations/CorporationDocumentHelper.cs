@@ -1,11 +1,11 @@
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Perpetuum.Accounting.Characters;
 using Perpetuum.Common.Loggers.Transaction;
 using Perpetuum.Data;
 using Perpetuum.Zones.TerraformProjects;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 
 namespace Perpetuum.Groups.Corporations
 {
@@ -31,7 +31,10 @@ namespace Perpetuum.Groups.Corporations
 
     public static class CorporationDocumentHelper
     {
-        public static readonly IDictionary<int, CorporationDocumentConfig> corporationDocumentConfig = Database.CreateCache<int,CorporationDocumentConfig>("corporationdocumentconfig", "documenttype", r => new CorporationDocumentConfig(r));
+        public static readonly IDictionary<int, CorporationDocumentConfig> corporationDocumentConfig = Database.CreateCache<int,CorporationDocumentConfig, DataContext.Entities.Corporationdocumentconfig>(
+            x => x.Documenttype,
+            x => new CorporationDocumentConfig(x)
+        );
 
         private static readonly ConcurrentDictionary<int,CorporationDocumentViewer>  _corporationDocumentViewers = new ConcurrentDictionary<int, CorporationDocumentViewer>();
 
@@ -51,14 +54,14 @@ namespace Perpetuum.Groups.Corporations
             return viewer.Viewers;
         }
 
-        public static void RegisterCharacterToDocument(int documentId,Character character)
+        public static void RegisterCharacterToDocument(int documentId, Character character)
         {
             var viewer = GetViewerByDocumentId(documentId);
 
             viewer.AddViewer(character);
         }
 
-        public static void UnRegisterCharacterFromDocument(int documentId,Character character)
+        public static void UnRegisterCharacterFromDocument(int documentId, Character character)
         {
             var viewer = GetViewerByDocumentId(documentId);
 
@@ -97,7 +100,7 @@ namespace Perpetuum.Groups.Corporations
 
         public static ErrorCodes CheckOwnerAccess(int documentId, Character character, out CorporationDocument corporationDocument)
         {
-            
+
             ErrorCodes ec;
             if ((ec = GetSingleDocumentFromSql(documentId, out corporationDocument)) != ErrorCodes.NoError)
             {
@@ -109,10 +112,10 @@ namespace Perpetuum.Groups.Corporations
             {
                 return ErrorCodes.NoError;
             }
-            
+
             return ErrorCodes.AccessDenied;
         }
-        
+
         public static ErrorCodes CheckRegisteredAccess(int documentId, Character character, out CorporationDocument corporationDocument, bool forWrite = false)
         {
             ErrorCodes ec;
@@ -140,7 +143,7 @@ namespace Perpetuum.Groups.Corporations
                     return ErrorCodes.InsufficientPrivileges;
                 }
             }
-            
+
             return ec;
         }
 
@@ -150,7 +153,7 @@ namespace Perpetuum.Groups.Corporations
         {
             corporationDocument = null;
             const string commandStr = LowDetailSelect + " where id=@id";
-            
+
 
             var record =
             Db.Query().CommandText(commandStr).SetParameter("@id", documentId)
@@ -160,13 +163,13 @@ namespace Perpetuum.Groups.Corporations
                 return ErrorCodes.ItemNotFound;
 
             corporationDocument = new CorporationDocument(record);
-            
+
             return ErrorCodes.NoError;
 
         }
 
 
-        private static List<CorporationDocument> GetMyCorporationDocuments( Character character)
+        private static List<CorporationDocument> GetMyCorporationDocuments(Character character)
         {
             var myRegistered =
             Db.Query().CommandText("select documentid from corporationdocumentregistration where characterid=@characterId").SetParameter("@characterId", character.Id)
@@ -193,27 +196,27 @@ namespace Perpetuum.Groups.Corporations
                         .Select(r => new CorporationDocument(r))
                         .ToList();
             }
-            
+
             return new List<CorporationDocument>();
-            
+
         }
 
 
 
 
 
-        public static Dictionary<string,object> GetMyDocumentsToDictionary(Character character)
+        public static Dictionary<string, object> GetMyDocumentsToDictionary(Character character)
         {
-            return GenerateResultFromDocuments(GetMyCorporationDocuments( character));
+            return GenerateResultFromDocuments(GetMyCorporationDocuments(character));
         }
 
-        public static Dictionary<string,object> GenerateResultFromDocuments(ICollection<CorporationDocument> documents )
+        public static Dictionary<string, object> GenerateResultFromDocuments(ICollection<CorporationDocument> documents)
         {
             var documentsDict = new Dictionary<string, object>(documents.Count);
             var counter = 0;
             foreach (var corporationDocument in documents)
             {
-                documentsDict.Add("d" + counter ++, corporationDocument.ToDictionary());
+                documentsDict.Add("d" + counter++, corporationDocument.ToDictionary());
             }
 
             var result = new Dictionary<string, object>
@@ -245,7 +248,7 @@ namespace Perpetuum.Groups.Corporations
 
         public static ErrorCodes GetDocumentConfig(CorporationDocumentType documentType, out CorporationDocumentConfig documentConfig)
         {
-            return corporationDocumentConfig.TryGetValue((int) documentType, out documentConfig) ? ErrorCodes.NoError : ErrorCodes.InvalidDocumentType;
+            return corporationDocumentConfig.TryGetValue((int)documentType, out documentConfig) ? ErrorCodes.NoError : ErrorCodes.InvalidDocumentType;
         }
 
         public static ErrorCodes OnDocumentTransfer(CorporationDocument corporationDocument, Character targetCharacter)
@@ -268,14 +271,14 @@ namespace Perpetuum.Groups.Corporations
             return ec;
         }
 
-        
+
 
 
 
         public static int GetAmountByType(CorporationDocumentType documentType, Character character)
         {
-            return 
-            Db.Query().CommandText("select count(*) from corporationdocuments where ownercharacterid=@characterId and documenttype=@type").SetParameter("@type", (int) documentType).SetParameter("@characterId", character.Id)
+            return
+            Db.Query().CommandText("select count(*) from corporationdocuments where ownercharacterid=@characterId and documenttype=@type").SetParameter("@type", (int)documentType).SetParameter("@characterId", character.Id)
                 .ExecuteScalar<int>();
 
         }

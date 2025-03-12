@@ -12,8 +12,18 @@ namespace Perpetuum.Zones.Effects
     /// </summary>
     public static class EffectHelper
     {
-        public static readonly IDictionary<EffectCategory, int> EffectCategoryLevels = Database.CreateCache<EffectCategory, int>("effectcategories", "flag", r => r.GetValue<int>("maxlevel"), null, key => (EffectCategory)(1L << (int)key));
-        private static readonly IDictionary<EffectType, EffectInfo> _effectInfos = Database.CreateCache<EffectType, EffectInfo>("effects", "id", r => new EffectInfo(r));
+        public static readonly IDictionary<EffectCategory, int> EffectCategoryLevels = Database.CreateCache<EffectCategory, int, DataContext.Entities.Effectcategory>(
+            x => (EffectCategory)x.Flag,
+            x => x.Maxlevel,
+            null,
+            key => (EffectCategory)(1L << (int)key)
+        );
+
+        private static readonly IDictionary<EffectType, EffectInfo> _effectInfos = Database.CreateCache<EffectType, EffectInfo, DataContext.Entities.Effect>(
+            x => (EffectType)x.Id,
+            x => new EffectInfo(x)
+        );
+
         private static readonly ILookup<EffectType, ItemPropertyModifier> _effectDefaultModifiers;
 
         static EffectHelper()

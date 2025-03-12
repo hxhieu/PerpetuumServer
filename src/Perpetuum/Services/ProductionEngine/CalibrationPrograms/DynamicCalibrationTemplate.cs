@@ -1,7 +1,4 @@
-﻿using System.Data;
-using Perpetuum.Data;
-
-namespace Perpetuum.Services.ProductionEngine.CalibrationPrograms
+﻿namespace Perpetuum.Services.ProductionEngine.CalibrationPrograms
 {
 
     /// <summary>
@@ -14,11 +11,11 @@ namespace Perpetuum.Services.ProductionEngine.CalibrationPrograms
         public readonly double TimeEfficiency;
         public readonly int TargetDefinition;
 
-        public DynamicCalibrationTemplate(IDataRecord record)
+        public DynamicCalibrationTemplate(DataContext.Entities.Dynamiccalibrationtemplate entity)
         {
-            MaterialEfficiency = record.GetValue<double>("materialefficiency");
-            TimeEfficiency = record.GetValue<double>("timeefficiency");
-            TargetDefinition = record.GetValue<int>("targetdefinition");
+            MaterialEfficiency = entity.Materialefficiency;
+            TimeEfficiency = entity.Timeefficiency;
+            TargetDefinition = entity.Targetdefinition;
         }
     }
 }

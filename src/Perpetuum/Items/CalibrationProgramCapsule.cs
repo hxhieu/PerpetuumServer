@@ -1,7 +1,6 @@
 ﻿using Perpetuum.Data;
 using Perpetuum.EntityFramework;
 using System.Collections.Generic;
-using System.Data;
 
 namespace Perpetuum.Items
 {
@@ -12,7 +11,10 @@ namespace Perpetuum.Items
 
         static CalibrationProgramCapsule()
         {
-            CalibrationTemplateItemLookup = Database.CreateCache<int, CalibrationCapsuleRecord>("calibrationtemplateitems", "definition", r => new CalibrationCapsuleRecord(r));
+            CalibrationTemplateItemLookup = Database.CreateCache<int, CalibrationCapsuleRecord, DataContext.Entities.Calibrationtemplateitem>(
+                x => x.Definition ?? 0,
+                x => new CalibrationCapsuleRecord(x)
+            );
         }
 
 
@@ -38,9 +40,9 @@ namespace Perpetuum.Items
     {
         public readonly int TargetDefinition;
 
-        public CalibrationCapsuleRecord(IDataRecord record)
+        public CalibrationCapsuleRecord(DataContext.Entities.Calibrationtemplateitem entity)
         {
-            TargetDefinition = record.GetValue<int>("targetdefinition");
+            TargetDefinition = entity.Targetdefinition ?? 0;
         }
     }
 }

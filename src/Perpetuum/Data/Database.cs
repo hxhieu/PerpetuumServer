@@ -10,23 +10,7 @@ namespace Perpetuum.Data
     {
         #region Caching
 
-        /// <summary>
-        /// Creates a key -> value sql table cache
-        /// </summary>
-        public static IDictionary<TKey, TValue> CreateCache<TKey, TValue>(string table, string columnKey, string columnValue)
-        {
-            return CreateCache<TKey, TValue>(table, columnKey, r => r.GetValue<TValue>(columnValue));
-        }
-
-        /// <summary>
-        /// Sql table cache factory
-        /// </summary>
-        public static IDictionary<TKey, TValue> CreateCache<TKey, TValue>(string table, string columnKey, Func<IDataRecord, TValue> valueFactory, Func<IDataRecord, bool> selector = null, Func<TKey, TKey> keyFactory = null)
-        {
-            return new LazyDictionary<TKey, TValue>(() => LoadTableToDictionary(table, columnKey, valueFactory, selector, keyFactory));
-        }
-
-        /// <summary>
+         /// <summary>
         /// Sql table cache factory using EF
         /// </summary>
         public static IDictionary<TKey, TValue> CreateCache<TKey, TValue, TEntity>(
@@ -43,7 +27,7 @@ namespace Perpetuum.Data
             Func<TEntity, TKey> keySelector,
             Func<TEntity, TValue> valueFactory,
             Func<TEntity, bool> selector = null
-        )  where TEntity : class
+        ) where TEntity : class
         {
             return new LazyLookup<TKey, TValue>(() =>
             {
@@ -51,30 +35,6 @@ namespace Perpetuum.Data
                 var entities = repo.GetMany();
                 return entities.Where(e => selector == null || selector(e)).ToLookup(e => keySelector(e), valueFactory);
             });
-        }
-
-        private static Dictionary<TKey, TV> LoadTableToDictionary<TKey, TV>(string table, string columnKey, Func<IDataRecord, TV> valueFactory, Func<IDataRecord, bool> selector, Func<TKey, TKey> keyFactory)
-        {
-            var records = Db.Query().CommandText($"select * from {table}").Execute();
-
-            var result = new Dictionary<TKey, TV>();
-
-            foreach (var record in records)
-            {
-                if (!(selector?.Invoke(record) ?? true))
-                    continue;
-
-                var key = record.GetValue<TKey>(columnKey);
-
-                if (keyFactory != null)
-                {
-                    key = keyFactory(key);
-                }
-
-                var value = valueFactory(record);
-                result.Add(key, value);
-            }
-            return result;
         }
 
         private static Dictionary<TKey, TV> LoadEntityToDictionary<TKey, TV, TEntity>(

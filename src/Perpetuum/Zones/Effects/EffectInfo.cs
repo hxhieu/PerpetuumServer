@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using Perpetuum.Data;
-using Perpetuum.ExportedTypes;
+﻿using Perpetuum.ExportedTypes;
+using System.Collections.Generic;
 
 namespace Perpetuum.Zones.Effects
 {
@@ -17,17 +15,17 @@ namespace Perpetuum.Zones.Effects
         public readonly int auraRadius;
         private readonly int _displayFlags;
 
-        public EffectInfo(IDataRecord record)
+        public EffectInfo(DataContext.Entities.Effect entity)
         {
-            type = record.GetValue<EffectType>("id");
-            category = (EffectCategory)record.GetValue<long>("effectcategory");
-            _name = record.GetValue<string>("name");
-            duration = record.GetValue<int>("duration");
-            _description = record.GetValue<string>("description");
-            _isPositive = record.GetValue<bool>("ispositive");
-            isAura = record.GetValue<bool>("isaura");
-            auraRadius = record.GetValue<int>("auraradius");
-            _displayFlags = record.GetValue<int>("display");
+            type = (EffectType)entity.Id;
+            category = (EffectCategory)entity.Effectcategory;
+            _name = entity.Name;
+            duration = entity.Duration;
+            _description = entity.Description;
+            _isPositive = entity.Ispositive;
+            isAura = entity.Isaura;
+            auraRadius = entity.Auraradius;
+            _displayFlags = entity.Display;
         }
 
         public bool Display
@@ -38,7 +36,7 @@ namespace Perpetuum.Zones.Effects
             }
         }
 
-        public Dictionary<string,object> ToDictionary()
+        public Dictionary<string, object> ToDictionary()
         {
             return new Dictionary<string, object>
                        {

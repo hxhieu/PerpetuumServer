@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Perpetuum.Data;
+﻿using Perpetuum.Data;
 using Perpetuum.EntityFramework;
 using Perpetuum.ExportedTypes;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Perpetuum.Services.ProductionEngine
 {
@@ -33,17 +33,20 @@ namespace Perpetuum.Services.ProductionEngine
         private readonly IDictionary<int, ProductionCost> _costTable;
         public ProductionCostReader()
         {
-            _costTable = Database.CreateCache<int, ProductionCost>("productioncost", "id", r =>
-            {
-                var cost = new ProductionCost
+            _costTable = Database.CreateCache<int, ProductionCost, DataContext.Entities.Productioncost>(
+                x => x.Id,
+                x =>
                 {
-                    categoryFlag = r.GetValue<long?>(k.category),
-                    tierType = r.GetValue<int?>(k.tierType),
-                    tierLevel = r.GetValue<int?>(k.tierLevel),
-                    costModifier = r.GetValue<double>("costmodifier")
-                };
-                return cost;
-            });
+                    var cost = new ProductionCost
+                    {
+                        categoryFlag = x.Category,
+                        tierType = x.Tiertype,
+                        tierLevel = x.Tierlevel,
+                        costModifier = x.Costmodifier
+                    };
+                    return cost;
+                }
+            );
         }
 
         /// <summary>

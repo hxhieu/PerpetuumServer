@@ -17,7 +17,11 @@ namespace Perpetuum.Zones.Artifacts.Repositories
             x => (ArtifactType)x.Artifacttype,
             x => new ArtifactLoot(x)
         );
-        private static readonly IDictionary<ArtifactType, ArtifactInfo> _artifactInfos = Database.CreateCache<ArtifactType, ArtifactInfo>("artifacttypes", "id", ArtifactInfo.GenerateArtifactInfo);
+        private static readonly IDictionary<ArtifactType, ArtifactInfo> _artifactInfos = Database.CreateCache<ArtifactType, ArtifactInfo, DataContext.Entities.Artifacttype>(
+            x => (ArtifactType)x.Id,
+            ArtifactInfo.GenerateArtifactInfo
+        );
+
         public ArtifactInfo GetArtifactInfo(ArtifactType type)
         {
             return _artifactInfos[type];

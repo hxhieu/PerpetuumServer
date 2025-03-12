@@ -21,8 +21,13 @@ namespace Perpetuum.Data
             var depth = 0;
             foreach (var frame in frames)
             {
-                depth++;
                 var method = frame.GetMethod();
+
+                if (method.DeclaringType?.FullName == typeof(DbQuery).FullName)
+                    continue;
+
+                depth++;
+
                 if (method.DeclaringType?.Namespace.StartsWith("Perpetuum") ?? false)
                 {
                     stackString += $"[{method.DeclaringType.FullName}] -> {method.Name} (";

@@ -1,6 +1,6 @@
+using Perpetuum.Data;
 using System.Collections.Generic;
 using System.Linq;
-using Perpetuum.Data;
 
 namespace Perpetuum.Services.ProductionEngine.CalibrationPrograms
 {
@@ -18,7 +18,10 @@ namespace Perpetuum.Services.ProductionEngine.CalibrationPrograms
 
         static DynamicCalibrationProgram()
         {
-            DynamicCalibrationTemplates = Database.CreateCache<int,DynamicCalibrationTemplate>("dynamiccalibrationtemplates", "definition", r => new DynamicCalibrationTemplate(r));
+            DynamicCalibrationTemplates = Database.CreateCache<int,DynamicCalibrationTemplate, DataContext.Entities.Dynamiccalibrationtemplate>(
+                x => x.Definition,
+                x => new DynamicCalibrationTemplate(x)
+            );
         }
 
         public DynamicCalibrationProgram(IProductionDataAccess productionDataAccess) : base(productionDataAccess)

@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using Perpetuum.Data;
 using Perpetuum.ExportedTypes;
 using Perpetuum.Log;
+using System.Collections.Generic;
 
 namespace Perpetuum.Zones.Beams
 {
@@ -10,8 +10,14 @@ namespace Perpetuum.Zones.Beams
     /// </summary>
     public static class BeamHelper
     {
-        private static readonly IDictionary<BeamType, int> _cacheBeamDelays = Database.CreateCache<BeamType, int>("beams", "id", "startdelay");
-        private static readonly IDictionary<int, BeamType> _cacheBeamAssignments = Database.CreateCache<int, BeamType>("beamassignment", "definition", "beam");
+        private static readonly IDictionary<BeamType, int> _cacheBeamDelays = Database.CreateCache<BeamType, int, DataContext.Entities.Beam>(
+            x => (BeamType)x.Id,
+            x => x.Startdelay
+        );
+        private static readonly IDictionary<int, BeamType> _cacheBeamAssignments = Database.CreateCache<int, BeamType, DataContext.Entities.Beamassignment>(
+            x => x.Definition,
+            x => (BeamType)x.Beam
+        );
 
         public static int GetBeamDelay(BeamType beamType)
         {

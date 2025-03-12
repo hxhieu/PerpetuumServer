@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using Perpetuum.Accounting.Characters;
 using Perpetuum.Data;
 using Perpetuum.Units.DockingBases;
+using System;
+using System.Collections.Generic;
 
 namespace Perpetuum.Groups.Corporations
 {
@@ -15,7 +15,10 @@ namespace Perpetuum.Groups.Corporations
 
         static DefaultCorporation()
         {
-            DockingBaseEids = Database.CreateCache<long, long>("cw_corporation","corporationeid", "baseeid");
+            DockingBaseEids = Database.CreateCache<long, long, DataContext.Entities.CwCorporation>(
+                x => x.CorporationEid,
+                x => x.BaseEid ?? 0
+            );
             _freelancerCorporationEid = new Lazy<long>(() => GetEidByName(SYNDICATE_FREELANCER));
         }
 

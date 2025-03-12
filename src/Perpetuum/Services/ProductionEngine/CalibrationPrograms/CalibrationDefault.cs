@@ -1,7 +1,4 @@
-﻿using System.Data;
-using Perpetuum.Data;
-
-namespace Perpetuum.Services.ProductionEngine.CalibrationPrograms
+﻿namespace Perpetuum.Services.ProductionEngine.CalibrationPrograms
 {
 
     /// <summary>
@@ -13,10 +10,10 @@ namespace Perpetuum.Services.ProductionEngine.CalibrationPrograms
         public double materialEfficiency;
         public double timeEfficiency;
 
-        public CalibrationDefault(IDataRecord record)
+        public CalibrationDefault(DataContext.Entities.Calibrationdefault entity)
         {
-            materialEfficiency = record.GetValue<double>(k.materialEfficiency.ToLower());
-            timeEfficiency = record.GetValue<double>(k.timeEfficiency.ToLower());
+            materialEfficiency = entity.Materialefficiency;
+            timeEfficiency = entity.Timeefficiency;
         }
     }
 }

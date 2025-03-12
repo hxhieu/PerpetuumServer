@@ -1,4 +1,5 @@
 using Perpetuum.Data;
+using Perpetuum.DataContext;
 using Perpetuum.EntityFramework;
 using Perpetuum.Items;
 using Perpetuum.Log;
@@ -24,7 +25,8 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
     public class MissionDataCache(
         IExtensionReader extensionReader,
         IZoneManager zoneManager,
-        IEntityDefaultReader entityDefaultReader
+        IEntityDefaultReader entityDefaultReader,
+        IDbRepositoryReadOnly<DataContext.Entities.Artifacttype> artifactTypeRepo
     )
     {
         private IDictionary<string, object> _dataCache; //prepared client data
@@ -213,7 +215,7 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
         {
             _missionArtifactInfos.Clear();
 
-            _missionArtifactInfos.AddRange(Db.Query().CommandText("select * from artifacttypes where dynamic=1").Execute().Select(ArtifactInfo.GenerateArtifactInfo).ToList());
+            _missionArtifactInfos.AddRange(artifactTypeRepo.GetMany(x => x.Dynamic).Select(ArtifactInfo.GenerateArtifactInfo).ToList());
         }
 
         [CanBeNull]

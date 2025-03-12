@@ -27,19 +27,22 @@ namespace Perpetuum.Services.RiftSystem
 
         public CustomRiftConfigReader()
         {
-            _riftconfigs = Database.CreateCache<int, CustomRiftConfig>("riftconfigs", "id", r =>
-            {
-                var id = r.GetValue<int>("id");
-                var name = r.GetValue<string>("name");
-                var destinationGroupId = r.GetValue<int>("destinationGroupId");
-                var lifetimeSeconds = r.GetValue<int?>("lifespanSeconds") ?? 0;
-                var maxUses = r.GetValue<int?>("maxUses") ?? -1;
-                var catExcludeGroupId = r.GetValue<int?>("categoryExclusionGroupId") ?? -1;
+            _riftconfigs = Database.CreateCache<int, CustomRiftConfig, DataContext.Entities.Riftconfig>(
+                x => x.Id,
+                x =>
+                {
+                    var id = x.Id;
+                    var name = x.Name;
+                    var destinationGroupId = x.DestinationGroupId ?? 0;
+                    var lifetimeSeconds = x.LifespanSeconds ?? 0;
+                    var maxUses = x.MaxUses ?? -1;
+                    var catExcludeGroupId = x.CategoryExclusionGroupId ?? -1;
 
-                var destinations = GetDestinations(destinationGroupId);
-                var excludedCats = GetExclusionCategories(catExcludeGroupId);
-                return new CustomRiftConfig(id, name, destinations, maxUses, TimeSpan.FromSeconds(lifetimeSeconds), excludedCats);
-            });
+                    var destinations = GetDestinations(destinationGroupId);
+                    var excludedCats = GetExclusionCategories(catExcludeGroupId);
+                    return new CustomRiftConfig(id, name, destinations, maxUses, TimeSpan.FromSeconds(lifetimeSeconds), excludedCats);
+                }
+            );
         }
 
         private WeightedCollection<Destination> GetDestinations(int destinationGroupId)

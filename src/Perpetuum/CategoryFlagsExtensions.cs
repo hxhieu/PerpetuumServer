@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Perpetuum.Data;
+using Perpetuum.ExportedTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Perpetuum.Data;
-using Perpetuum.ExportedTypes;
 
 namespace Perpetuum
 {
@@ -12,7 +12,11 @@ namespace Perpetuum
 
         static CategoryFlagsExtensions()
         {
-            _uniqueCategoryFlags = Database.CreateCache<string, CategoryFlags>("categoryflags", "name", r => r.GetValue<CategoryFlags>("value"), r => r.GetValue<bool>("isunique"));
+            _uniqueCategoryFlags = Database.CreateCache<string, CategoryFlags, DataContext.Entities.CategoryFlag>(
+                x => x.Name,
+                x => (CategoryFlags)x.Value,
+                x => x.Isunique
+            );
         }
 
         public static CategoryFlags GetCategoryFlagsMask(this CategoryFlags categoryFlags)
