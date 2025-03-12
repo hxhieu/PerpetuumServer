@@ -13,39 +13,6 @@ namespace Perpetuum.Data
 
     public class DbQuery
     {
-        public static void LogCaller(int maxDepth = 5)
-        {
-            var stackTrace = new StackTrace(1); // Ignore itself
-            var frames = stackTrace.GetFrames();
-            var stackString = "";
-            var depth = 0;
-            foreach (var frame in frames)
-            {
-                var method = frame.GetMethod();
-
-                if (method.DeclaringType?.FullName == typeof(DbQuery).FullName)
-                    continue;
-
-                depth++;
-
-                if (method.DeclaringType?.Namespace.StartsWith("Perpetuum") ?? false)
-                {
-                    stackString += $"[{method.DeclaringType.FullName}] -> {method.Name} (";
-                    method.GetParameters().ForEach(x =>
-                    {
-                        stackString += $"{x.ParameterType.Name} {x.Name}, ";
-                    });
-                    stackString = stackString.Trim(' ', ',');
-                    stackString += "), ";
-                }
-                if (depth >= maxDepth)
-                    break;
-            }
-
-            stackString = stackString.Trim(' ', ',');
-            Logger.Error($"!>>> RAW SQL CALL: {stackString}");
-        }
-
         private readonly DbConnectionFactory _connectionFactory;
 
         private string _commandText = string.Empty;
@@ -110,7 +77,7 @@ namespace Perpetuum.Data
 
                 using (command)
                 {
-                    LogCaller();
+                    GlobalServiceManager.LogCaller();
                     return execute(command);
                 }
             }

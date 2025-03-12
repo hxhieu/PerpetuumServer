@@ -92,6 +92,7 @@ namespace Perpetuum.EntityFramework
 
         public Entity Load(long eid)
         {
+            GlobalServiceManager.LogCaller();
             return Load(entityRepo.GetOne(x => x.Eid == eid));
         }
 

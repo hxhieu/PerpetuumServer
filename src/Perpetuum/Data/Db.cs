@@ -16,7 +16,7 @@ namespace Perpetuum.Data
         public static DbQuery Query(string commandText)
         {
             var query = DbQueryFactory().CommandText(commandText);
-            DbQuery.LogCaller();
+            GlobalServiceManager.LogCaller();
             return query;
         }
 

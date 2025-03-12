@@ -1,6 +1,7 @@
 using Perpetuum.Data;
 using Perpetuum.DataContext;
 using Perpetuum.EntityFramework;
+using Perpetuum.Groups.Alliances;
 using Perpetuum.Items;
 using Perpetuum.Log;
 using Perpetuum.Services.ExtensionService;
@@ -26,7 +27,9 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
         IExtensionReader extensionReader,
         IZoneManager zoneManager,
         IEntityDefaultReader entityDefaultReader,
-        IDbRepositoryReadOnly<DataContext.Entities.Artifacttype> artifactTypeRepo
+        IEntityRepository entityRepository,
+        IDbRepositoryReadOnly<DataContext.Entities.Artifacttype> artifactTypeRepo,
+        IDbRepositoryReadOnly<DataContext.Entities.Entity> entityRepo
     )
     {
         private IDictionary<string, object> _dataCache; //prepared client data
@@ -108,7 +111,7 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
 
             _missionLocations = Database.CreateCache<int, MissionLocation, DataContext.Entities.Missionlocation>(
                 x => x.Id,
-                MissionLocation.FromRecord
+                x => new MissionLocation(x)
             );
 
             _targets = Database.CreateCache<int, MissionTarget, DataContext.Entities.Missiontarget>(
@@ -157,7 +160,7 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
 
             _agents = Database.CreateCache<int, MissionAgent, DataContext.Entities.Missionagent>(
                 x => x.Id,
-                MissionAgent.FromRecord
+                x => new MissionAgent(x)
             );
 
             _issuers = Database.CreateCache<int, MissionIssuer, DataContext.Entities.Missionissuer>(
@@ -184,6 +187,22 @@ namespace Perpetuum.Services.MissionEngine.MissionDataCacheObjects
                 x => x.Missionlevel,
                 x => x.Amount
             );
+
+            // Load agents owner in batch
+            var agentOwnerEntities = entityRepo.GetMany(x => _agents.Select(l => l.Value.OwnerEid).Contains(x.Eid));
+            _agents.Values.ForEach(a =>
+            {
+                var matchingEntity = agentOwnerEntities.FirstOrDefault(e => e.Eid == a.OwnerEid);
+                a.SetOwnerAlliance((Alliance)entityRepository.Load(matchingEntity));
+            });
+
+            // Load location entities in batch
+            var locationEntities = entityRepo.GetMany(x => _missionLocations.Select(l => l.Value.LocationEid).Contains(x.Eid));
+            _missionLocations.Values.ForEach(l =>
+            {
+                var matchingEntity = locationEntities.FirstOrDefault(e => e.Eid == l.LocationEid);
+                l.SetEntity(entityRepository.Load(matchingEntity));
+            });
 
             _targetSeletionValidator = new Lazy<TargetSelectionValidator>(() => TargetSelectionValidator.CreateValidator(zoneManager));
 

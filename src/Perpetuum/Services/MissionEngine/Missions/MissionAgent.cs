@@ -11,6 +11,9 @@ namespace Perpetuum.Services.MissionEngine.Missions
     {
         private static MissionDataCache _missionDataCache;
 
+        private long _ownerEid;
+        public long OwnerEid => OwnerAlliance?.Eid ?? _ownerEid;
+
         public static void Init(MissionDataCache missionDataCache)
         {
             _missionDataCache = missionDataCache;
@@ -48,25 +51,17 @@ namespace Perpetuum.Services.MissionEngine.Missions
         }
 
 
-        public static MissionAgent FromRecord(DataContext.Entities.Missionagent record)
+        public MissionAgent(DataContext.Entities.Missionagent entity)
         {
-            var id = record.Id;
-            var name = record.Agentname;
-            var ownerEid = record.Owner ?? 0;
-
-            var agent = new MissionAgent(id, name)
-            {
-                OwnerAlliance = Alliance.GetOrThrow(ownerEid)
-            };
-
-            return agent;
+            id = entity.Id;
+            _name = entity.Agentname;
+            _myMissions = new Lazy<List<Mission>>(CollectMyMissions);
+            _ownerEid = entity.Owner ?? 0;
         }
 
-        private MissionAgent(int id, string name)
+        public void SetOwnerAlliance(Alliance alliance)
         {
-            this.id = id;
-            _name = name;
-            _myMissions = new Lazy<List<Mission>>(CollectMyMissions);
+            OwnerAlliance = alliance;
         }
 
         public Dictionary<string, object> ToDictionary()

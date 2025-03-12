@@ -192,7 +192,7 @@ namespace Perpetuum.Bootstrapper.Modules
                 var zones = e.Context.Resolve<IZoneConfigurationReader>().GetAll();
 #if DEBUG
                 // Load debug zones from configuration
-                if (GlobalServiceManager.DebugSettings.ZonesToLoad.Length > 0)
+                if (GlobalServiceManager.DebugSettings.ZonesToLoad?.Length > 0)
                 {
                     zones = zones.Where(x => GlobalServiceManager.DebugSettings.ZonesToLoad.Contains(x.Id));
                 }

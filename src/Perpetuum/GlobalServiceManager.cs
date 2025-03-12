@@ -1,9 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Perpetuum.Configuration;
+using Perpetuum.Data;
 using Perpetuum.DataContext;
+using Perpetuum.Log;
 using Serilog;
 using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Perpetuum
@@ -50,6 +53,42 @@ namespace Perpetuum
 
         public static IDbRepositoryReadOnly<T> CreateReadOnlyRepository<T>() where T : class => DbRepositoryReadOnlyFactory.CreateReadOnlyRepository<T>();
 
+        /// <summary>
+        /// Log the caller of this method
+        /// </summary>
+        /// <param name="maxDepth"></param>
+        public static void LogCaller(int maxDepth = 5)
+        {
+            var stackTrace = new StackTrace(1); // Ignore itself
+            var frames = stackTrace.GetFrames();
+            var stackString = "";
+            var depth = 0;
+            foreach (var frame in frames)
+            {
+                var method = frame.GetMethod();
+
+                if (method.DeclaringType?.FullName == typeof(DbQuery).FullName)
+                    continue;
+
+                depth++;
+
+                if (method.DeclaringType?.Namespace.StartsWith("Perpetuum") ?? false)
+                {
+                    stackString += $"[{method.DeclaringType.FullName}] -> {method.Name} (";
+                    method.GetParameters().ForEach(x =>
+                    {
+                        stackString += $"{x.ParameterType.Name} {x.Name}, ";
+                    });
+                    stackString = stackString.Trim(' ', ',');
+                    stackString += "), ";
+                }
+                if (depth >= maxDepth)
+                    break;
+            }
+
+            stackString = stackString.Trim(' ', ',');
+            Logger.Error($"!>>> RAW SQL CALL: {stackString}");
+        }
 
         /// <summary>
         /// Invoke the provided action, only after all zones loaded

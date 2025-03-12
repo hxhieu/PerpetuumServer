@@ -19,7 +19,9 @@ namespace Perpetuum.Services.MissionEngine.MissionStructures
     {
         public readonly int id;
 
-        public long LocationEid => _locationEntity.Eid;
+        // To keep initial loaded location eid, then we need to use it to get the location entity
+        private long _locationEid;
+        public long LocationEid => _locationEntity?.Eid ?? _locationEid;
 
         public double X => MyPosition.X;
 
@@ -61,33 +63,20 @@ namespace Perpetuum.Services.MissionEngine.MissionStructures
             return result;
         }
 
-        public static MissionLocation FromRecord(DataContext.Entities.Missionlocation entity)
+        public void SetEntity(Entity entity)
         {
-            int id = entity.Id;
-            int agentId = entity.Agentid;
-            long locationEid = entity.Locationeid;
-            int zoneId = entity.Zoneid;
-            double x = entity.X;
-            double y = entity.Y;
-            int maxMissionLevel = entity.Maxmissionlevel;
-
-            MissionLocation location = new MissionLocation(id, maxMissionLevel)
-            {
-                Agent = _missionDataCache.GetAgent(agentId),
-                MyPosition = new Position(x, y),
-                _locationEntity = Entity.Repository.Load(locationEid),
-                zoneId = zoneId
-            };
-
-            return location;
+            _locationEntity = entity;
         }
 
-
-        private MissionLocation(int id, int maxMissionLevel)
+        public MissionLocation(DataContext.Entities.Missionlocation entity)
         {
-            this.id = id;
-            this.maxMissionLevel = maxMissionLevel;
+            _locationEid = entity.Locationeid;
 
+            id = entity.Id;
+            Agent = _missionDataCache.GetAgent(entity.Agentid);
+            MyPosition = new Position(entity.X, entity.Y);
+            zoneId = entity.Zoneid;
+            maxMissionLevel = entity.Maxmissionlevel;
         }
 
         public override string ToString()
