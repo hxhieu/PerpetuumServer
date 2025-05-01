@@ -201,6 +201,20 @@ namespace Perpetuum.Bootstrapper.Modules
                 var zoneFactory = e.Context.Resolve<Func<ZoneConfiguration, IZone>>();
                 var effectHandler = e.Context.Resolve<Func<IZone, EnvironmentalEffectHandler>>();
 
+                //foreach (var c in zones)
+                //{
+                //    IZone zone = zoneFactory(c);
+                //    effectHandler.Invoke(zone);
+
+                //    Logger.Info("------------------");
+                //    Logger.Info("--");
+                //    Logger.Info("--  zone " + zone.Configuration.Id + " loaded.");
+                //    Logger.Info("--");
+                //    Logger.Info("------------------");
+
+                //    zoneList.Add(zone);
+                //}
+
                 // Load zones in parallel to improve the performance
                 Parallel.ForEach(zones, c =>
                 {

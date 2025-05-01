@@ -13,7 +13,7 @@ namespace Perpetuum.DataContext
         IQueryable<T> GetManyQuery(Expression<Func<T, bool>>? predicate = null);
     }
 
-    public class DbRepositoryReadOnly<T>: IDbRepositoryReadOnly<T> where T: class
+    public class DbRepositoryReadOnly<T> : IDbRepositoryReadOnly<T> where T : class
     {
         protected readonly PerpetuumDbContext Context;
         protected readonly DbSet<T> DbSet;
