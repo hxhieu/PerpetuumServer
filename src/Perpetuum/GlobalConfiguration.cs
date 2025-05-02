@@ -3,6 +3,12 @@ using System.ComponentModel;
 
 namespace Perpetuum
 {
+    public class MissionRatesConfiguration
+    {
+        public int EpRates { get; set; }
+        public int CreditRates { get; set; }
+    }
+
     public class GlobalConfiguration
     {
         public string ListenerIP { get; set; }
@@ -24,6 +30,8 @@ namespace Perpetuum
         public bool EnableDev { get; set; }
 
         public CorporationConfiguration Corporation { get; set; }
+
+        public MissionRatesConfiguration MissionRates { get; set; }
 
         public bool StartServerInAdminOnlyMode { get; set; }
 

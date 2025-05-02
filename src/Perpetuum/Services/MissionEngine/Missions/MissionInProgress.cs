@@ -56,6 +56,7 @@ namespace Perpetuum.Services.MissionEngine.Missions
         private readonly IStandingHandler _standingHandler;
         private readonly IProductionDataAccess _productionDataAccess;
         private readonly IZoneManager _zoneManager;
+        private readonly GlobalConfiguration _globalConfiguration;
         public MissionLocation myLocation;
         private long _issuerCorporationEid;
         private long _issuerAllianceEid;
@@ -86,12 +87,13 @@ namespace Perpetuum.Services.MissionEngine.Missions
 
         public delegate MissionInProgress Factory(Mission mission);
 
-        public MissionInProgress(Mission mission,IStandingHandler standingHandler,IProductionDataAccess productionDataAccess,IZoneManager zoneManager)
+        public MissionInProgress(Mission mission,IStandingHandler standingHandler,IProductionDataAccess productionDataAccess,IZoneManager zoneManager, GlobalConfiguration globalConfiguration)
         {
             myMission = mission;
             _standingHandler = standingHandler;
             _productionDataAccess = productionDataAccess;
             _zoneManager = zoneManager;
+            _globalConfiguration = globalConfiguration;
         }
 
         public static MissionInProgress CreateFromRecord(IDataRecord record, Mission mission)
@@ -1581,6 +1583,7 @@ namespace Perpetuum.Services.MissionEngine.Missions
 
                 Logger.Info("reward transferred to char " + currentCharacter.Nick + " amount:" + amountToCharacter);
 
+                amountToCharacter *= _globalConfiguration.MissionRates.CreditRates;
                 currentCharacter.AddToWallet(TransactionType.missionPayOut, amountToCharacter);
                 payoutLogEntries.Add(new MissionPayOutLogEntry(missionGuid, MissionId, myMission.missionCategory, MissionLevel, null, currentCharacter.Id, onlineGangMembers.Count, amountToCharacter, rewardSum));
             }
@@ -2335,6 +2338,8 @@ namespace Perpetuum.Services.MissionEngine.Missions
 
             if (myLocation.ZoneConfig.IsBeta)
                 result *= 2;
+
+            result *= _globalConfiguration.MissionRates.EpRates;
 
             return (int) result;
         }
