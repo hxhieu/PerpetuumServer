@@ -3,8 +3,19 @@ using System.ComponentModel;
 
 namespace Perpetuum
 {
+    public class RatesConfiguration
+    {
+        public int Ep { get; set; } = 1;
+        public int Credit { get; set; } = 1;
+        public int PlayerDamage { get; set; } = 1;
+        public int MissionReward { get; set; } = 1;
+        public int Loot { get; set; } = 1;
+    }
+
     public class GlobalConfiguration
     {
+        public static GlobalConfiguration Instance { get; private set; }
+
         public string ListenerIP { get; set; }
         public int ListenerPort { get; set; }
 
@@ -25,6 +36,8 @@ namespace Perpetuum
 
         public CorporationConfiguration Corporation { get; set; }
 
+        public RatesConfiguration Rates { get; set; }
+
         public bool StartServerInAdminOnlyMode { get; set; }
 
         // Default NIC value for new player.
@@ -42,5 +55,11 @@ namespace Perpetuum
         // Default camouflage bonus value.
         [DefaultValue(5), JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public int CamouflageBonus { get; set; }
+
+        public GlobalConfiguration() { }
+        public GlobalConfiguration(string settingJson)
+        {
+            Instance = JsonConvert.DeserializeObject<GlobalConfiguration>(settingJson);
+        }
     }
 }

@@ -17,11 +17,11 @@ namespace Perpetuum.Items
         public float Health { get; set; }
         public bool IsRepackaged { get; set; }
 
-        public ItemInfo(int definition,int quantity = 1) : this()
+        public ItemInfo(int definition, int quantity = 1) : this()
         {
             Definition = definition;
-            Quantity = quantity;
-            Health = (float) EntityDefault.Health;
+            Quantity = quantity * GlobalConfiguration.Instance.Rates.Loot;
+            Health = (float)EntityDefault.Health;
             IsRepackaged = EntityDefault.AttributeFlags.Repackable;
         }
 
@@ -29,8 +29,8 @@ namespace Perpetuum.Items
         public ItemInfo(int definition, int minq = 1, int maxq = 1) : this()
         {
             Definition = definition;
-            MinQty = minq;
-            MaxQty = maxq;
+            MinQty = minq * GlobalConfiguration.Instance.Rates.Loot;
+            MaxQty = maxq * GlobalConfiguration.Instance.Rates.Loot;
             Quantity = this.randomQuantity(); //randomize quantity for min-max ranged loots on init
             Health = (float)EntityDefault.Health;
             IsRepackaged = EntityDefault.AttributeFlags.Repackable;
@@ -39,7 +39,7 @@ namespace Perpetuum.Items
         //Roll random
         public int randomQuantity()
         {
-            if(this.MinQty != this.MaxQty)
+            if (this.MinQty != this.MaxQty)
             {
                 return FastRandom.NextInt(this.MinQty, this.MaxQty);
             }
@@ -53,7 +53,7 @@ namespace Perpetuum.Items
 
         public double Volume
         {
-            get { return EntityDefault.CalculateVolume(IsRepackaged,Quantity); }
+            get { return EntityDefault.CalculateVolume(IsRepackaged, Quantity); }
         }
 
         public IDictionary<string, object> ToDictionary()
@@ -78,7 +78,7 @@ namespace Perpetuum.Items
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            return obj is ItemInfo && Equals((ItemInfo) obj);
+            return obj is ItemInfo && Equals((ItemInfo)obj);
         }
 
         public override int GetHashCode()
@@ -86,9 +86,9 @@ namespace Perpetuum.Items
             unchecked
             {
                 var hashCode = Definition;
-                hashCode = (hashCode*397) ^ Quantity;
-                hashCode = (hashCode*397) ^ Health.GetHashCode();
-                hashCode = (hashCode*397) ^ IsRepackaged.GetHashCode();
+                hashCode = (hashCode * 397) ^ Quantity;
+                hashCode = (hashCode * 397) ^ Health.GetHashCode();
+                hashCode = (hashCode * 397) ^ IsRepackaged.GetHashCode();
                 return hashCode;
             }
         }

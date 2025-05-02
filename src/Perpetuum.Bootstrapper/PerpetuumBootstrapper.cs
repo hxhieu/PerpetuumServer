@@ -361,9 +361,9 @@ namespace Perpetuum.Bootstrapper
             {
                 IFileSystem fileManager = c.Resolve<IFileSystem>();
                 string settingsFile = fileManager.ReadAllText("perpetuum.ini");
-                GlobalConfiguration configuration = JsonConvert.DeserializeObject<GlobalConfiguration>(settingsFile);
-                configuration.GameRoot = gameRoot;
-                return configuration;
+                new GlobalConfiguration(settingsFile);
+                GlobalConfiguration.Instance.GameRoot = gameRoot;
+                return GlobalConfiguration.Instance;
             }).SingleInstance();
 
             _ = _builder.RegisterType<AdminCommandRouter>().SingleInstance();
