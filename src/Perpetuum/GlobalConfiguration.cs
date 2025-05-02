@@ -3,10 +3,10 @@ using System.ComponentModel;
 
 namespace Perpetuum
 {
-    public class MissionRatesConfiguration
+    public class RatesConfiguration
     {
-        public int EpRates { get; set; }
-        public int CreditRates { get; set; }
+        public int Ep { get; set; }
+        public int Credit { get; set; }
     }
 
     public class GlobalConfiguration
@@ -31,7 +31,7 @@ namespace Perpetuum
 
         public CorporationConfiguration Corporation { get; set; }
 
-        public MissionRatesConfiguration MissionRates { get; set; }
+        public RatesConfiguration Rates { get; set; }
 
         public bool StartServerInAdminOnlyMode { get; set; }
 

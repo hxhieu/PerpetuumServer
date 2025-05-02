@@ -48,7 +48,8 @@ namespace Perpetuum.Accounting.Characters
             ICorporationManager corporationManager,
             ITechTreeService techTreeService,
             IGangManager gangManager,
-            CharacterWalletHelper walletHelper)
+            CharacterWalletHelper walletHelper,
+            GlobalConfiguration globalConfiguration)
         {
             this.accountManager = accountManager;
             this.zoneManager = zoneManager;
@@ -62,7 +63,7 @@ namespace Perpetuum.Accounting.Characters
             this.techTreeService = techTreeService;
             this.gangManager = gangManager;
             this.walletHelper = walletHelper;
-
+            _globalConfiguration = globalConfiguration;
             if (id <= 0)
             {
                 id = 0;
@@ -92,8 +93,7 @@ namespace Perpetuum.Accounting.Characters
         private readonly ITechTreeService techTreeService;
         private readonly IGangManager gangManager;
         private readonly CharacterWalletHelper walletHelper;
-
-
+        private readonly GlobalConfiguration _globalConfiguration;
 
         public static ObjectCache CharacterCache { get; set; }
 
@@ -717,7 +717,14 @@ namespace Perpetuum.Accounting.Characters
 
         public void AddToWallet(TransactionType transactionType, double amount)
         {
-            walletHelper.AddToWallet(this, transactionType, amount);
+            var ratedAmount = amount;
+            switch (transactionType)
+            {
+                case TransactionType.missionPayOut:
+                    ratedAmount = amount * _globalConfiguration.Rates.Credit;
+                    break;
+            }
+            walletHelper.AddToWallet(this, transactionType, ratedAmount);
         }
 
         public void SubtractFromWallet(TransactionType transactionType, double amount)
@@ -886,7 +893,18 @@ WHERE characterid=@characterID AND e.active = 1 AND e.hidden = 0")
             Account account = GetAccount();
             Debug.Assert(account != null, "account != null");
 
-            return accountManager.AddExtensionPointsBoostAndLog(account, this, activityType, points);
+            var ratedPoints = points;
+            switch (activityType)
+            {
+                // Only bonus on productivity activity
+                case EpForActivityType.Mission:
+                case EpForActivityType.Gathering:
+                case EpForActivityType.Artifact:
+                case EpForActivityType.Production:
+                    ratedPoints = (int)(points * _globalConfiguration.Rates.Ep);
+                    break;
+            }
+            return accountManager.AddExtensionPointsBoostAndLog(account, this, activityType, ratedPoints);
         }
 
 
