@@ -1,4 +1,3 @@
-using MemoryPack;
 using System;
 using System.Runtime.InteropServices;
 
@@ -46,36 +45,6 @@ namespace Perpetuum
             {
                 Marshal.FreeHGlobal(ptr);
             }
-        }
-
-        /// <summary>
-        /// Converts a byte array to an object
-        /// </summary>
-        //public static T Deserialize<T>(this byte[] data)
-        //{
-        //    if (data == null)
-        //    {
-        //        return default(T);
-        //    }
-
-        //    using (var ms = new MemoryStream(data))
-        //    {
-        //        return (T)(new BinaryFormatter().Deserialize(ms));
-        //    }
-        //}
-
-        // TODO: .NET 8 upgrade
-        /// <summary>
-        /// Converts a byte array to an object
-        /// </summary>
-        public static T Deserialize<T>(this byte[] data)
-        {
-            if (data is null || data.Length == 0)
-            {
-                return default;
-            }
-
-            return MemoryPackSerializer.Deserialize<T>(data);
         }
     }
 }

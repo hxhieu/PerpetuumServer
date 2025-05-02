@@ -6,7 +6,7 @@ namespace Perpetuum.Server
     {
         static void Main(string[] args)
         {
-            var gameRoot = "D:\\PerpetuumServer\\data";
+            var gameRoot = args[0];
             if (!Directory.Exists(gameRoot))
             {
                 throw new Exception($"GameRoot folder was not found: {gameRoot}");

@@ -1,4 +1,4 @@
-﻿using MemoryPack;
+﻿using Force.DeepCloner;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -48,30 +48,14 @@ namespace Perpetuum
             }
         }
 
-        //public static T Clone<T>(this T source)
-        //{
-        //    if (Equals(source, default(T)))
-        //    {
-        //        return default(T);
-        //    }
-
-        //    Debug.Assert(typeof(T).IsSerializable, "EZ NEM SERIALIZALHATO: " + typeof(T));
-
-        //    using (var ms = new MemoryStream())
-        //    {
-        //        var bf = new BinaryFormatter();
-        //        bf.Serialize(ms, source);
-        //        ms.Seek(0, SeekOrigin.Begin);
-        //        return (T)(bf.Deserialize(ms));
-        //    }
-        //}
-
-        // TODO: .NET 8 upgrade
-        public static T Clone<T>(this T source) where T : class
+        public static T Clone<T>(this T source)
         {
-            if (source is null) return default;
+            if (Equals(source, default(T)))
+            {
+                return default(T);
+            }
 
-            return MemoryPackSerializer.Deserialize<T>(MemoryPackSerializer.Serialize(source));
+            return source.DeepClone();
         }
     }
 }
