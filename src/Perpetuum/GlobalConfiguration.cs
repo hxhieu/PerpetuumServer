@@ -8,6 +8,8 @@ namespace Perpetuum
         public int Ep { get; set; } = 1;
         public int Credit { get; set; } = 1;
         public int PlayerDamage { get; set; } = 1;
+        public int MissionReward { get; set; } = 1;
+        public int Loot { get; set; } = 1;
     }
 
     public class GlobalConfiguration
