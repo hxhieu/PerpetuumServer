@@ -1,6 +1,7 @@
 ﻿using Perpetuum.Modules.AdaptiveAlloy;
 using Perpetuum.Modules.EffectModules;
 using Perpetuum.Modules.Weapons;
+using Perpetuum.Players;
 using Perpetuum.Robots;
 using Perpetuum.Units;
 using Perpetuum.Zones.CombatLogs;
@@ -95,9 +96,15 @@ namespace Perpetuum.Zones.DamageProcessors
 
             foreach (Damage damage in damageInfo.CalculateDamages(unit))
             {
+                var damageValue = damage.value;
+                if (damageInfo.attacker is Player)
+                {
+                    damageValue *= GlobalConfiguration.Instance.Rates.PlayerDamage;
+                }
+
                 double partialDamage = damage.type == DamageType.Electric
-                    ? CalculateAbsorbedDamage(damage.value, true, ref totalAbsorbedDamage)
-                    : CalculateAbsorbedDamage(damage.value, false, ref totalAbsorbedDamage);
+                    ? CalculateAbsorbedDamage(damageValue, true, ref totalAbsorbedDamage)
+                    : CalculateAbsorbedDamage(damageValue, false, ref totalAbsorbedDamage);
                 if (partialDamage <= 0.0)
                 {
                     continue;

@@ -48,8 +48,7 @@ namespace Perpetuum.Accounting.Characters
             ICorporationManager corporationManager,
             ITechTreeService techTreeService,
             IGangManager gangManager,
-            CharacterWalletHelper walletHelper,
-            GlobalConfiguration globalConfiguration)
+            CharacterWalletHelper walletHelper)
         {
             this.accountManager = accountManager;
             this.zoneManager = zoneManager;
@@ -63,7 +62,6 @@ namespace Perpetuum.Accounting.Characters
             this.techTreeService = techTreeService;
             this.gangManager = gangManager;
             this.walletHelper = walletHelper;
-            _globalConfiguration = globalConfiguration;
             if (id <= 0)
             {
                 id = 0;
@@ -93,7 +91,6 @@ namespace Perpetuum.Accounting.Characters
         private readonly ITechTreeService techTreeService;
         private readonly IGangManager gangManager;
         private readonly CharacterWalletHelper walletHelper;
-        private readonly GlobalConfiguration _globalConfiguration;
 
         public static ObjectCache CharacterCache { get; set; }
 
@@ -721,7 +718,7 @@ namespace Perpetuum.Accounting.Characters
             switch (transactionType)
             {
                 case TransactionType.missionPayOut:
-                    ratedAmount = amount * _globalConfiguration.Rates.Credit;
+                    ratedAmount = amount * GlobalConfiguration.Instance.Rates.Credit;
                     break;
             }
             walletHelper.AddToWallet(this, transactionType, ratedAmount);
@@ -901,7 +898,7 @@ WHERE characterid=@characterID AND e.active = 1 AND e.hidden = 0")
                 case EpForActivityType.Gathering:
                 case EpForActivityType.Artifact:
                 case EpForActivityType.Production:
-                    ratedPoints = (int)(points * _globalConfiguration.Rates.Ep);
+                    ratedPoints = (int)(points * GlobalConfiguration.Instance.Rates.Ep);
                     break;
             }
             return accountManager.AddExtensionPointsBoostAndLog(account, this, activityType, ratedPoints);
