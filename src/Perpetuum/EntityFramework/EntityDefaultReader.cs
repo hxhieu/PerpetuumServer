@@ -29,7 +29,7 @@ namespace Perpetuum.EntityFramework
 
         public EntityDefault Get(int definition)
         {
-            return _entityDefaults.GetOrDefault(definition,EntityDefault.None);
+            return _entityDefaults.GetOrDefault(definition, EntityDefault.None);
         }
 
         public EntityDefault GetByEid(long eid)
@@ -68,10 +68,18 @@ namespace Perpetuum.EntityFramework
 
             foreach (var record in records)
             {
+                var name = record.GetValue<string>("definitionName");
                 var definition = record.GetValue<int>("definition");
 
                 var tierType = (TierType)(record.GetValue<int?>("tiertype") ?? 0);
                 var tierLevel = record.GetValue<int?>("tierlevel") ?? 0;
+
+
+                var optDict = ((GenxyString)record.GetValue<string>("options")).ToDictionary();
+                if (name.StartsWith("def_robot_inventory_") && optDict.ContainsKey(k.capacity))
+                {
+                    optDict[k.capacity] = (double)optDict[k.capacity] * GlobalConfiguration.Instance.Rates.Capacity;
+                }
 
                 var entityDefault = new EntityDefault
                 {
@@ -79,14 +87,14 @@ namespace Perpetuum.EntityFramework
                     _descriptionToken = record.GetValue<string>("descriptionToken"),
                     _hidden = record.GetValue<bool>("hidden"),
                     Definition = definition,
-                    Name = record.GetValue<string>("definitionName"),
+                    Name = name,
                     Quantity = record.GetValue<int>("quantity"),
                     AttributeFlags = new EntityAttributeFlags((ulong)record.GetValue<long>("attributeflags")),
                     CategoryFlags = (CategoryFlags)record.GetValue<long>("categoryflags"),
                     Mass = record.GetValue<double>("mass"),
                     Health = record.GetValue<double>("health"),
                     Purchasable = record.GetValue<bool>("purchasable"),
-                    Options = new EntityDefaultOptions(((GenxyString)record.GetValue<string>("options")).ToDictionary()),
+                    Options = new EntityDefaultOptions(optDict),
                     EnablerExtensions = GetEnablerAndRequiredExtensions(definition),
                     Config = definitionConfigs.GetOrDefault(definition, DefinitionConfig.None),
                     Tier = new TierInfo(tierType, tierLevel)
@@ -98,9 +106,9 @@ namespace Perpetuum.EntityFramework
             return result;
         }
 
-        private Dictionary<Extension,Extension[]> GetEnablerAndRequiredExtensions(int definition)
+        private Dictionary<Extension, Extension[]> GetEnablerAndRequiredExtensions(int definition)
         {
-            return _extensionReader.GetEnablerExtensions(definition).ToDictionary(e => e,e => _extensionReader.GetRequiredExtensions(e.id).ToArray());
+            return _extensionReader.GetEnablerExtensions(definition).ToDictionary(e => e, e => _extensionReader.GetRequiredExtensions(e.id).ToArray());
         }
 
         private static Dictionary<int, DefinitionConfig> LoadDefinitionConfigs()
