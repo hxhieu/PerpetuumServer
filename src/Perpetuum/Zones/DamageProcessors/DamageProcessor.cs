@@ -97,9 +97,17 @@ namespace Perpetuum.Zones.DamageProcessors
             foreach (Damage damage in damageInfo.CalculateDamages(unit))
             {
                 var damageValue = damage.value;
+
+                // Player deals
                 if (damageInfo.attacker is Player)
                 {
                     damageValue *= GlobalConfiguration.Instance.Rates.PlayerDamage;
+                }
+
+                // Player takes
+                if (unit is Player)
+                {
+                    damageValue /= GlobalConfiguration.Instance.Rates.PlayerDamage;
                 }
 
                 double partialDamage = damage.type == DamageType.Electric
